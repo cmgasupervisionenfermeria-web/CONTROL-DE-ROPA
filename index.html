@@ -237,7 +237,8 @@ const LS_QUEUE = 'ropa_cmga_queue_v2';
 const PRENDAS_DEF = [
   ['r01','Sábana regular','Ropa de cama'],['r02','Sábana clínica','Ropa de cama'],['r03','Edredón','Ropa de cama'],
   ['r04','Funda de almohada','Ropa de cama'],['r05','Cobertor','Ropa de cama'],
-  ['r06','Toalla','Ropa de paciente'],['r07','Bata de paciente','Ropa de paciente']
+  ['r06','Toalla','Ropa de paciente'],['r07','Bata de paciente','Ropa de paciente'],
+  ['r08','Bata pediátrica','Ropa de paciente'],['r09','Bata bariátrica','Ropa de paciente']
 ].map(([id,nombre,grupo])=>({id,nombre,grupo,activo:true}));
 const SERV_DEF = [
   {id:'hosp',nombre:'Hospitalización'},
@@ -277,7 +278,9 @@ function cargarLocal(){
 }
 function normConfig(c){
   const base=configDefault(); if(!c) return base;
-  return {prendas:c.prendas&&c.prendas.length?c.prendas:base.prendas, servicios:c.servicios&&c.servicios.length?c.servicios:base.servicios,
+  const prendas=c.prendas&&c.prendas.length?c.prendas.slice():base.prendas;
+  base.prendas.forEach(p=>{if(!prendas.some(x=>x.id===p.id))prendas.push({...p});}); // agrega prendas nuevas del catálogo base
+  return {prendas, servicios:c.servicios&&c.servicios.length?c.servicios:base.servicios,
           dotacion:c.dotacion||base.dotacion, params:{...base.params,...(c.params||{})}};
 }
 function guardarLocal(){try{localStorage.setItem(LS_KEY,JSON.stringify(DB));localStorage.setItem(LS_QUEUE,JSON.stringify(QUEUE));}catch(e){toast('Memoria del navegador llena: conéctese a internet para subir las fotos pendientes',5000);}}
@@ -441,9 +444,9 @@ function calcularMes(m){
   const P=DB.config.params;const fin=finDeMes(m);const ref=hoy()<fin?hoy():fin;
   const dias=mesDe(hoy())===m?Number(hoy().slice(8)):diasDelMes(m);
   const por={};const e=p=>por[p]=por[p]||{env:0,envX:0,acep:0,rech:0,fal:0};
-  let kgEnv=0,kgRec=0,bolsas=0,difNota=0,difNotaEnv=0,sinNota=0;const motivos={};
-  DB.envios.filter(x=>mesDe(x.fecha)===m).forEach(x=>{kgEnv+=num(x.kg);difNotaEnv+=difNotaRec(x);if(!tieneNota(x))sinNota++;bolsas+=num(x.bolsasCont);Object.keys(x.items||{}).forEach(p=>{e(p);por[p].env+=num(x.items[p].c)+num(x.items[p].x);por[p].envX+=num(x.items[p].x);});});
-  DB.recepciones.filter(x=>mesDe(x.fecha)===m).forEach(x=>{kgRec+=num(x.kg);difNota+=difNotaRec(x);if(!tieneNota(x))sinNota++;(x.motivos||[]).forEach(mo=>motivos[mo]=(motivos[mo]||0)+1);Object.keys(x.items||{}).forEach(p=>{e(p);por[p].acep+=num(x.items[p].a);por[p].rech+=num(x.items[p].r);});});
+  let bolsas=0,difNota=0,difNotaEnv=0,sinNota=0;const motivos={};
+  DB.envios.filter(x=>mesDe(x.fecha)===m).forEach(x=>{difNotaEnv+=difNotaRec(x);if(!tieneNota(x))sinNota++;bolsas+=num(x.bolsasCont);Object.keys(x.items||{}).forEach(p=>{e(p);por[p].env+=num(x.items[p].c)+num(x.items[p].x);por[p].envX+=num(x.items[p].x);});});
+  DB.recepciones.filter(x=>mesDe(x.fecha)===m).forEach(x=>{difNota+=difNotaRec(x);if(!tieneNota(x))sinNota++;(x.motivos||[]).forEach(mo=>motivos[mo]=(motivos[mo]||0)+1);Object.keys(x.items||{}).forEach(p=>{e(p);por[p].acep+=num(x.items[p].a);por[p].rech+=num(x.items[p].r);});});
   DB.ajustes.filter(x=>mesDe(x.fecha)===m&&x.tipo!=='inicial').forEach(x=>Object.keys(x.items||{}).forEach(p=>{e(p);por[p].fal+=num(x.items[p]);}));
   const saldo=calcularSaldo(ref);const cob=calcularCobertura(ref);
   // existencia total por prenda = último conteo de cada servicio + saldo en lavandería
@@ -461,8 +464,8 @@ function calcularMes(m){
   const conCob=Object.values(cob).filter(c=>c.conteo);
   const cobProm=conCob.length?conCob.reduce((s,c)=>s+c.cobGlobal,0)/conCob.length:null;
   const prendasBajo=conCob.reduce((s,c)=>s+c.bajo,0);
-  return {m,dias,filas,T,kgEnv,kgRec,bolsas,difNota,difNotaEnv,sinNota,motivos,surt,pal,saldo,cob,vencidas,
-    ind:{devolucion:pct(T.acep,T.env),rechazo:pct(T.rech,T.acep+T.rech),faltantes:pct(T.fal,T.env),vencidas,cobProm,prendasBajo,suficiencia:pct(T.exist,T.rec),difKg:kgEnv>0?(kgEnv-kgRec)/kgEnv*100:null}};
+  return {m,dias,filas,T,bolsas,difNota,difNotaEnv,sinNota,motivos,surt,pal,saldo,cob,vencidas,
+    ind:{devolucion:pct(T.acep,T.env),rechazo:pct(T.rech,T.acep+T.rech),faltantes:pct(T.fal,T.env),vencidas,cobProm,prendasBajo,suficiencia:pct(T.exist,T.rec)}};
 }
 function semaforo(v,meta,mayorMejor){if(v===null||v===undefined)return '';return (mayorMejor?v>=meta:v<=meta)?'ok':'bad';}
 
@@ -582,11 +585,11 @@ function renderEnvios(){
   const m=$('fEnvMes').value;const L=DB.envios.filter(e=>!m||mesDe(e.fecha)===m).sort((a,b)=>(b.fecha+b.hora).localeCompare(a.fecha+a.hora));
   if(!L.length){$('tabEnvios').innerHTML='<div class="empty">Sin envíos en el periodo.</div>';return;}
   let tc=0,tx=0,tk=0,tb=0;
-  $('tabEnvios').innerHTML=`<table><tr><th>Folio</th><th>Fecha</th><th class="n">Común</th><th class="n">Contaminada</th><th class="n">Total</th><th class="n">Bolsas contam.</th><th class="n">Kg</th><th>Nota del proveedor</th><th>Recibió (proveedor)</th><th></th></tr>${L.map(e=>{
-    let c=0,x=0;Object.values(e.items||{}).forEach(v=>{c+=num(v.c);x+=num(v.x);});tc+=c;tx+=x;tk+=num(e.kg);tb+=num(e.bolsasCont);
-    return `<tr><td><b>${esc(e.folio)}</b></td><td>${fFecha(e.fecha)} ${esc(e.hora||'')}${marcaTardia(e)}</td><td class="n">${fmt(c)}</td><td class="n">${fmt(x)}</td><td class="n"><b>${fmt(c+x)}</b></td><td class="n">${fmt(e.bolsasCont)}</td><td class="n">${num(e.kg).toFixed(1)}</td><td>${pillNota(e)}${fotoLink(e)}</td><td>${esc(e.recibe||'')}</td>
+  $('tabEnvios').innerHTML=`<table><tr><th>Folio</th><th>Fecha</th><th class="n">Común</th><th class="n">Contaminada</th><th class="n">Total</th><th class="n">Bolsas contam.</th><th>Nota del proveedor</th><th>Recibió (proveedor)</th><th></th></tr>${L.map(e=>{
+    let c=0,x=0;Object.values(e.items||{}).forEach(v=>{c+=num(v.c);x+=num(v.x);});tc+=c;tx+=x;tb+=num(e.bolsasCont);
+    return `<tr><td><b>${esc(e.folio)}</b></td><td>${fFecha(e.fecha)} ${esc(e.hora||'')}${marcaTardia(e)}</td><td class="n">${fmt(c)}</td><td class="n">${fmt(x)}</td><td class="n"><b>${fmt(c+x)}</b></td><td class="n">${fmt(e.bolsasCont)}</td><td>${pillNota(e)}${fotoLink(e)}</td><td>${esc(e.recibe||'')}</td>
     <td style="white-space:nowrap"><button class="btn sec sm" onclick="imprimirEnvio('${e.id}')">🖨</button> <button class="btn sec sm edit-only" onclick="abrirEnvio('${e.id}')">Editar</button> <button class="btn red sm edit-only" onclick="borrarRegistro('envios','${e.id}')">✕</button></td></tr>`;}).join('')}
-    <tr class="tot"><td colspan="2">Total</td><td class="n">${fmt(tc)}</td><td class="n">${fmt(tx)}</td><td class="n">${fmt(tc+tx)}</td><td class="n">${fmt(tb)}</td><td class="n">${tk.toFixed(1)}</td><td colspan="3"></td></tr></table>`;
+    <tr class="tot"><td colspan="2">Total</td><td class="n">${fmt(tc)}</td><td class="n">${fmt(tx)}</td><td class="n">${fmt(tc+tx)}</td><td class="n">${fmt(tb)}</td><td colspan="3"></td></tr></table>`;
 }
 function gridHTML(cols,valores){
   // cols: [{k,label}] ; valores: {pid:{k:n}}
@@ -601,7 +604,7 @@ function abrirEnvio(id){
   if(!requiere(id?'admin':'vig'))return;const e=id?DB.envios.find(x=>x.id===id):null;
   abrirModal(`<h2>${e?'Editar envío '+esc(e.folio):'Nuevo envío de ropa sucia'}</h2>
   <div class="row">${htmlFH('e',e)}<label class="f">Nota / remisión del proveedor<input id="eNotaProv" value="${esc(e?e.notaProv||'':'')}"></label>
-  <label class="f">Kg totales<input type="number" step="0.1" min="0" id="eKg" value="${e?e.kg||'':''}"></label><label class="f">Bolsas contaminadas<input type="number" min="0" id="eBol" value="${e?e.bolsasCont||'':''}"></label></div>
+  <label class="f">Bolsas contaminadas<input type="number" min="0" id="eBol" value="${e?e.bolsasCont||'':''}"></label></div>
   <div class="note">Común = contada pieza por pieza por Vigilancia en el Tanatorio. Contaminada = lo declarado en la etiqueta de cada bolsa (no se abre). Según nota = lo que anota el proveedor al recoger; común + contaminada debe coincidir.</div>
   ${gridHTML([{k:'c',label:'Común'},{k:'x',label:'Contaminada'},{k:'n',label:'Según nota'}],e&&e.items)}
   <div class="row" style="margin-top:10px"><label class="f" style="flex:1">Contó y entregó (Vigilancia)<input id="eEntrega" value="${esc(e?e.entrega:'')}"></label><label class="f" style="flex:1">Recibió (proveedor)<input id="eRecibe" value="${esc(e?e.recibe:'')}"></label></div>
@@ -614,7 +617,7 @@ function guardarEnvio(id){
   if(!requiere(id?'admin':'vig'))return;
   const items=leerGrid();if(!Object.keys(items).length){toast('Capture al menos una pieza');return;}
   const prev=id?DB.envios.find(x=>x.id===id):null;const FH=leerFH('e',prev);const fecha=FH.fecha;if(!fecha){toast('Indique la fecha');return;}
-  const rec={id:prev?prev.id:uid(),folio:prev?prev.folio:siguienteFolio('envios','ENV',fecha),tipo:'Envío',fecha,hora:FH.hora,registrado:FH.registrado,tardia:FH.tardia,notaProv:$('eNotaProv').value.trim(),kg:num($('eKg').value),bolsasCont:num($('eBol').value),
+  const rec={id:prev?prev.id:uid(),folio:prev?prev.folio:siguienteFolio('envios','ENV',fecha),tipo:'Envío',fecha,hora:FH.hora,registrado:FH.registrado,tardia:FH.tardia,notaProv:$('eNotaProv').value.trim(),bolsasCont:num($('eBol').value),
     items,entrega:$('eEntrega').value.trim(),recibe:$('eRecibe').value.trim(),obs:$('eObs').value.trim()};
   rec.resumen=resumenItems(items,v=>num(v.c)+num(v.x));
   if(!validarNota(rec,'Vigilancia',prev))return;
@@ -626,11 +629,11 @@ function renderRecepciones(){
   const m=$('fRecMes').value;const L=DB.recepciones.filter(e=>!m||mesDe(e.fecha)===m).sort((a,b)=>(b.fecha+b.hora).localeCompare(a.fecha+a.hora));
   if(!L.length){$('tabRecepciones').innerHTML='<div class="empty">Sin recepciones en el periodo.</div>';return;}
   let ta=0,tr=0,tk=0,tn=0,td=0;
-  $('tabRecepciones').innerHTML=`<table><tr><th>Folio</th><th>Fecha</th><th>Remisión prov.</th><th class="n">Según nota</th><th class="n">Aceptadas</th><th class="n">Rechazadas</th><th>Nota</th><th class="n">% rechazo</th><th class="n">Kg</th><th>Motivos</th><th></th></tr>${L.map(r=>{
-    const a=totalRec(r,'a'),x=totalRec(r,'r'),nn=totalRec(r,'n'),dn=difNotaRec(r);ta+=a;tr+=x;tk+=num(r.kg);tn+=nn;td+=dn;const p=pct(x,a+x);
-    return `<tr><td><b>${esc(r.folio)}</b></td><td>${fFecha(r.fecha)} ${esc(r.hora||'')}${marcaTardia(r)}</td><td>${esc(r.remisionProv||'')}</td><td class="n">${nn?fmt(nn):'—'}</td><td class="n">${fmt(a)}</td><td class="n">${fmt(x)}</td><td>${pillNota(r)}${fotoLink(r)}</td><td class="n ${p>DB.config.params.metaRechazo?'bad':''}">${fpct(p)}</td><td class="n">${num(r.kg).toFixed(1)}</td><td class="muted">${esc((r.motivos||[]).join(', '))}</td>
+  $('tabRecepciones').innerHTML=`<table><tr><th>Folio</th><th>Fecha</th><th>Remisión prov.</th><th class="n">Según nota</th><th class="n">Aceptadas</th><th class="n">Rechazadas</th><th>Nota</th><th class="n">% rechazo</th><th>Motivos</th><th></th></tr>${L.map(r=>{
+    const a=totalRec(r,'a'),x=totalRec(r,'r'),nn=totalRec(r,'n'),dn=difNotaRec(r);ta+=a;tr+=x;tn+=nn;td+=dn;const p=pct(x,a+x);
+    return `<tr><td><b>${esc(r.folio)}</b></td><td>${fFecha(r.fecha)} ${esc(r.hora||'')}${marcaTardia(r)}</td><td>${esc(r.remisionProv||'')}</td><td class="n">${nn?fmt(nn):'—'}</td><td class="n">${fmt(a)}</td><td class="n">${fmt(x)}</td><td>${pillNota(r)}${fotoLink(r)}</td><td class="n ${p>DB.config.params.metaRechazo?'bad':''}">${fpct(p)}</td><td class="muted">${esc((r.motivos||[]).join(', '))}</td>
     <td style="white-space:nowrap"><button class="btn sec sm" onclick="imprimirRecepcion('${r.id}')">🖨</button> <button class="btn sec sm edit-only" onclick="abrirRecepcion('${r.id}')">Editar</button> <button class="btn red sm edit-only" onclick="borrarRegistro('recepciones','${r.id}')">✕</button></td></tr>`;}).join('')}
-    <tr class="tot"><td colspan="3">Total</td><td class="n">${fmt(tn)}</td><td class="n">${fmt(ta)}</td><td class="n">${fmt(tr)}</td><td class="n">${fmt(td)}</td><td class="n">${fpct(pct(tr,ta+tr))}</td><td class="n">${tk.toFixed(1)}</td><td colspan="2"></td></tr></table>`;
+    <tr class="tot"><td colspan="3">Total</td><td class="n">${fmt(tn)}</td><td class="n">${fmt(ta)}</td><td class="n">${fmt(tr)}</td><td class="n">${fmt(td)}</td><td class="n">${fpct(pct(tr,ta+tr))}</td><td colspan="2"></td></tr></table>`;
 }
 function abrirRecepcion(id){
   FOTO_MODAL=null;
@@ -638,7 +641,7 @@ function abrirRecepcion(id){
   const mot=r?r.motivos||[]:[];
   abrirModal(`<h2>${r?'Editar recepción '+esc(r.folio):'Nueva recepción de ropa limpia'}</h2>
   <div class="row">${htmlFH('r',r)}
-  <label class="f">Remisión del proveedor<input id="rRem" value="${esc(r?r.remisionProv:'')}"></label><label class="f">Kg recibidos<input type="number" step="0.1" min="0" id="rKg" value="${r?r.kg||'':''}"></label></div>
+  <label class="f">Remisión del proveedor<input id="rRem" value="${esc(r?r.remisionProv:'')}"></label></div>
   <div class="note">Según nota = lo que dice la nota de lavandería. Vigilancia cuenta lo que llegó: aceptadas + rechazadas debe coincidir con la nota. Aceptadas descuentan el saldo en lavandería; rechazadas se devuelven al proveedor y siguen pendientes.</div>
   ${gridHTML([{k:'n',label:'Según nota'},{k:'a',label:'Aceptadas'},{k:'r',label:'Rechazadas'}],r&&r.items)}
   <div style="margin-top:10px"><div class="muted" style="margin-bottom:4px">Motivos de rechazo</div><div class="checks">${MOTIVOS.map(m=>`<label><input type="checkbox" class="mot" value="${m}" ${mot.includes(m)?'checked':''}> ${m}</label>`).join('')}</div></div>
@@ -662,7 +665,7 @@ function guardarRecepcion(id){
   const rech=Object.values(items).reduce((s,v)=>s+num(v.r),0);
   if(rech>0&&!motivos.length){toast('Marque el motivo del rechazo');return;}
   const prev=id?DB.recepciones.find(x=>x.id===id):null;
-  const rec={id:prev?prev.id:uid(),folio:prev?prev.folio:siguienteFolio('recepciones','REC',fecha),tipo:'Recepción',fecha,hora:FH.hora,registrado:FH.registrado,tardia:FH.tardia,remisionProv:$('rRem').value.trim(),kg:num($('rKg').value),
+  const rec={id:prev?prev.id:uid(),folio:prev?prev.folio:siguienteFolio('recepciones','REC',fecha),tipo:'Recepción',fecha,hora:FH.hora,registrado:FH.registrado,tardia:FH.tardia,remisionProv:$('rRem').value.trim(),
     items,motivos,recibio:$('rRecibio').value.trim(),entrego:$('rEntrego').value.trim(),obs:$('rObs').value.trim()};
   rec.resumen=resumenItems(items,v=>num(v.a)+(num(v.r)?' (+'+num(v.r)+' rech.)':''));
   if(!validarNota(rec,'Vigilancia',prevR))return;
@@ -854,9 +857,8 @@ function renderConcentrado(){
     const rows=ps.map(p=>{let t=0;const cells=sv.map(s=>{const v=num((C.surt[s.id]||{})[p.id]);t+=v;tot[s.id]=(tot[s.id]||0)+v;return `<td class="n">${v?fmt(v):'—'}</td>`;}).join('');return t?`<tr><td>${esc(p.nombre)}</td>${cells}<td class="n"><b>${fmt(t)}</b></td></tr>`:'';}).join('');
     return rows?`<table><tr><th>Prenda</th>${sv.map(s=>`<th class="n">${esc(s.nombre)}</th>`).join('')}<th class="n">Total</th></tr>${rows}<tr class="tot"><td>Total</td>${sv.map(s=>`<td class="n">${fmt(tot[s.id]||0)}</td>`).join('')}<td class="n">${fmt(Object.values(tot).reduce((a,b)=>a+b,0))}</td></tr></table>`:'<div class="empty">Sin resurtidos en el mes.</div>';})()}</div>
   <div class="muted" style="margin-top:6px">Lo surtido a cada servicio es su consumo real de ropa limpia en el mes.</div></div>
-  <div class="card"><h2>Peso</h2><div class="tw"><table><tr><th>Kg enviados</th><th>Kg recibidos</th><th>Diferencia</th><th>Bolsas contaminadas enviadas</th><th>Diferencias contra nota de lavandería</th><th>Motivos de rechazo (recepciones)</th></tr>
-  <tr><td>${C.kgEnv.toFixed(1)}</td><td>${C.kgRec.toFixed(1)}</td><td class="${I.difKg!==null&&Math.abs(I.difKg)>10?'bad':''}">${fpct(I.difKg)}</td><td>${fmt(C.bolsas)}</td><td class="${C.difNota+C.difNotaEnv?'bad':''}">Recepciones: ${fmt(C.difNota)} pzas · Envíos: ${fmt(C.difNotaEnv)} pzas${C.sinNota?` · <span class="warn">${C.sinNota} movimientos sin nota</span>`:''}</td><td>${Object.keys(C.motivos).map(k=>esc(k)+': '+C.motivos[k]).join(' · ')||'—'}</td></tr></table></div>
-  <div class="muted" style="margin-top:6px">La ropa sucia pesa algo más que la limpia; una diferencia mayor a 10 % se revisa con el proveedor.</div></div>
+  <div class="card"><h2>Notas del proveedor, bolsas contaminadas y rechazos</h2><div class="tw"><table><tr><th>Bolsas contaminadas enviadas</th><th>Diferencias contra nota de lavandería</th><th>Motivos de rechazo (recepciones)</th></tr>
+  <tr><td>${fmt(C.bolsas)}</td><td class="${C.difNota+C.difNotaEnv?'bad':''}">Recepciones: ${fmt(C.difNota)} pzas · Envíos: ${fmt(C.difNotaEnv)} pzas${C.sinNota?` · <span class="warn">${C.sinNota} movimientos sin nota</span>`:''}</td><td>${Object.keys(C.motivos).map(k=>esc(k)+': '+C.motivos[k]).join(' · ')||'—'}</td></tr></table></div></div>
   <div class="card"><h2>Cobertura de stock por servicio (conteo más reciente al cierre)</h2><div class="tw"><table><tr><th>Servicio</th><th>Conteo</th><th class="n">Stock (pzas)</th><th class="n">Cobertura</th><th>Prendas bajo ${P.metaCobertura} %</th></tr>
   ${serviciosStock().map(s=>{const o=C.cob[s.id];return `<tr><td>${esc(s.nombre)}</td><td>${o.conteo?fFecha(o.conteo.fecha):'<span class="muted">Sin conteo</span>'}</td><td class="n">${fmt(o.dotTotal)}</td><td class="n">${o.cobGlobal===null?'—':`<span class="pill ${semaforo(o.cobGlobal,P.metaCobertura,true)}">${fpct(o.cobGlobal)}</span>`}</td><td class="muted">${o.conteo?o.filas.filter(f=>f.cob<P.metaCobertura).map(f=>esc(prenda(f.pid).nombre)+' ('+fmt(f.cont)+'/'+fmt(f.dot)+')').join(', ')||'—':'—'}</td></tr>`;}).join('')}</table></div></div>`;
 }
@@ -923,7 +925,7 @@ function tablaItems(items,cols){
 function imprimirEnvio(id){
   const e=DB.envios.find(x=>x.id===id);if(!e)return;const P=DB.config.params;
   ventanaImpresion('Remisión de envío de ropa sucia',`<div class="meta"><div>Folio: <b>${esc(e.folio)}</b></div><div>Fecha: <b>${fFecha(e.fecha)} ${esc(e.hora||'')}</b></div><div>Proveedor: <b>${esc(P.proveedor||'—')}</b></div>
-  <div>Kg totales: <b>${num(e.kg).toFixed(1)}</b></div><div>Bolsas contaminadas: <b>${fmt(e.bolsasCont)}</b></div><div>Nota del proveedor: <b>${esc(e.notaProv||'—')}</b></div></div>
+  <div>Bolsas contaminadas: <b>${fmt(e.bolsasCont)}</b></div><div>Nota del proveedor: <b>${esc(e.notaProv||'—')}</b></div></div>
   ${tablaItems(e.items,[{k:'c',label:'Común',f:v=>num(v.c)},{k:'x',label:'Contaminada (declarada)',f:v=>num(v.x)},{k:'t',label:'Total contado',f:v=>num(v.c)+num(v.x)},{k:'n',label:'Según nota',f:v=>num(v.n)},{k:'d',label:'Diferencia',f:v=>tieneNota(e)?num(v.c)+num(v.x)-num(v.n):0}])}
   <p><b>Cotejo contra la nota del proveedor${e.notaProv?' ('+esc(e.notaProv)+')':''}:</b> ${esc(textoDifNota(e))}</p>
   ${e.obs?`<p><b>Observaciones:</b> ${esc(e.obs)}</p>`:''}
@@ -933,7 +935,7 @@ function imprimirEnvio(id){
 function imprimirRecepcion(id){
   const r=DB.recepciones.find(x=>x.id===id);if(!r)return;const P=DB.config.params;
   ventanaImpresion('Recepción de ropa limpia',`<div class="meta"><div>Folio: <b>${esc(r.folio)}</b></div><div>Fecha: <b>${fFecha(r.fecha)} ${esc(r.hora||'')}</b></div><div>Proveedor: <b>${esc(P.proveedor||'—')}</b></div>
-  <div>Remisión del proveedor: <b>${esc(r.remisionProv||'—')}</b></div><div>Kg recibidos: <b>${num(r.kg).toFixed(1)}</b></div><div>Motivos de rechazo: <b>${esc((r.motivos||[]).join(', ')||'—')}</b></div></div>
+  <div>Remisión del proveedor: <b>${esc(r.remisionProv||'—')}</b></div><div>Motivos de rechazo: <b>${esc((r.motivos||[]).join(', ')||'—')}</b></div></div>
   ${tablaItems(r.items,[{k:'n',label:'Según nota',f:v=>num(v.n)},{k:'a',label:'Aceptadas',f:v=>num(v.a)},{k:'r',label:'Rechazadas (devueltas)',f:v=>num(v.r)},{k:'d',label:'Diferencia vs nota',f:v=>tieneNota(r)?num(v.a)+num(v.r)-num(v.n):0}])}
   <p><b>Cotejo contra la nota de lavandería:</b> ${esc(textoDifNota(r))}</p>
   ${r.obs?`<p><b>Observaciones:</b> ${esc(r.obs)}</p>`:''}
