@@ -684,10 +684,10 @@ function guardarUso(id){
 
 /* ================= INVENTARIO: ALTAS Y BAJAS ================= */
 function renderInventario(){
-  $('tabInv').innerHTML=['piso','qx'].map(g=>{let ti=0,tm=0,ta=0,tb=0;const rows=prendas(g).map(p=>{const a=DB.altas.reduce((s,r)=>s+num(r.items[p.id]),0);const b=DB.bajas.reduce((s,r)=>s+num(r.items[p.id]),0);const i=a-b;ti+=i;tm+=num(p.meta);ta+=a;tb+=b;
+  const filasInv=['piso','qx'].map(g=>{let ti=0,tm=0,ta=0,tb=0;const rows=prendas(g).map(p=>{const a=DB.altas.reduce((s,r)=>s+num(r.items[p.id]),0);const b=DB.bajas.reduce((s,r)=>s+num(r.items[p.id]),0);const i=a-b;ti+=i;tm+=num(p.meta);ta+=a;tb+=b;
       return `<tr><td>${esc(p.nombre)}</td><td class="n">${fmt(p.meta)}</td><td class="n">${fmt(a)}</td><td class="n">${fmt(b)}</td><td class="n"><b>${fmt(i)}</b></td><td class="n ${i<num(p.meta)?'warn':'okc'}">${fmt(i-num(p.meta))}</td></tr>`;}).join('');
     return `<tr class="grp"><td colspan="6">${GRUPO_NOMBRE[g]}</td></tr>${rows}<tr class="tot"><td>Subtotal</td><td class="n">${fmt(tm)}</td><td class="n">${fmt(ta)}</td><td class="n">${fmt(tb)}</td><td class="n">${fmt(ti)}</td><td class="n">${fmt(ti-tm)}</td></tr>`;}).join('');
-  $('tabInv').innerHTML=`<table><tr><th>Prenda</th><th class="n">Inventario calculado</th><th class="n">Altas</th><th class="n">Bajas</th><th class="n">En inventario</th><th class="n">Diferencia</th></tr>${$('tabInv').innerHTML}</table>`;
+  $('tabInv').innerHTML=`<table><tr><th>Prenda</th><th class="n">Inventario calculado</th><th class="n">Altas</th><th class="n">Bajas</th><th class="n">En inventario</th><th class="n">Diferencia</th></tr>${filasInv}</table>`;
   const m=$('fInvMes').value;
   $('tabAltas').innerHTML=tablaRegistros('altas',DB.altas.filter(r=>!m||enRango(r,m)),[{t:'Tipo',f:r=>esc(r.tipo)},{t:'Destino',f:r=>esc(ubicNombre(r.destino))},{t:'Documento',f:r=>esc(r.documento||'')},{t:'Piezas',n:1,f:r=>fmt(sumItems(r.items))}],r=>`<button class="btn sec sm edit-only" onclick="abrirAlta('${r.id}')">✏️</button>`);
   $('tabBajas').innerHTML=tablaRegistros('bajas',DB.bajas.filter(r=>!m||enRango(r,m)),[{t:'Origen',f:r=>esc(ubicNombre(r.origen))},{t:'Motivo',f:r=>esc(r.motivo)},{t:'Piezas',n:1,f:r=>fmt(sumItems(r.items))},{t:'Detalle',f:r=>`<span class="muted">${esc(resumen(r.items,k=>prenda(k).nombre))}</span>`}],r=>`<button class="btn sec sm acc-lav" onclick="abrirBaja('${r.id}')">✏️</button>`);
