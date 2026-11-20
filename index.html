@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Control de Ropa Hospitalaria · CMGA</title>
 <style>
-
 :root{--navy:#1B3A6B;--teal:#1A8A6F;--bg:#F4F6F9;--card:#fff;--line:#DDE3EA;--txt:#1F2937;--muted:#6B7280;--red:#C0392B;--amber:#D68910;--green:#1E8449;--redbg:#FDEDEC;--amberbg:#FEF5E7;--greenbg:#EAFAF1}
 *{box-sizing:border-box}
 body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--txt);font-size:14px}
@@ -63,365 +62,470 @@ textarea{width:100%;min-height:54px}
 .toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--navy);color:#fff;padding:10px 16px;border-radius:8px;font-size:13px;display:none;z-index:60;max-width:90%}
 .edit-only,.acc-vig,.acc-sup{}
 body:not(.rol-admin) .edit-only{display:none!important}
-body:not(.rol-admin):not(.rol-lav) .acc-lav{display:none!important}
-body.rol-lav nav button.no-lav{display:none}
-h3.sec{font-size:13px;color:var(--teal);margin:4px 0 8px}
-table.grid input[type=number]{width:72px}
+body:not(.rol-admin):not(.rol-vig) .acc-vig{display:none!important}
+body:not(.rol-admin):not(.rol-sup) .acc-sup{display:none!important}
+body.rol-vig nav button.no-vig{display:none}
 .rolchip{font-weight:700}
 .note{background:#F0F7F5;border-left:3px solid var(--teal);padding:8px 10px;font-size:12px;border-radius:4px;margin:8px 0}
 .alert{background:var(--redbg);border-left:3px solid var(--red);padding:8px 10px;font-size:12px;border-radius:4px;margin:8px 0}
 .checks{display:flex;flex-wrap:wrap;gap:10px;font-size:13px}
 @media (max-width:640px){main{padding:10px}.kpi .v{font-size:20px}header h1{font-size:15px}}
-
-header img.logo{height:34px;background:#fff;border-radius:6px;padding:3px 6px}
 </style>
 </head>
-<body>
+<body class="ro">
 <header>
-  <img class="logo" id="logoHdr" alt="CMGA">
   <div>
     <h1>Control de Ropa Hospitalaria</h1>
-    <div class="sub">Lavandería propia · Ropa de cama, de paciente y quirúrgica</div>
+    <div class="sub">Centro Médico Galerías Aguascalientes · PRO-ENF-ROP-001</div>
   </div>
   <div class="sp"></div>
   <span class="chip"><span class="dot" id="syncDot"></span><span id="syncTxt">Local</span></span>
-  <span class="chip rolchip" id="modoTxt">Solo lectura</span>
-  <button class="btn sec sm" id="btnPin" onclick="pedirPin()">🔒 Entrar con PIN</button>
+  <span class="chip" id="modoTxt">Solo lectura</span>
+  <button class="btn sec sm" id="btnPin" onclick="pedirPin()">🔒 Editar</button>
 </header>
 <nav id="nav">
-  <button data-p="tablero" class="act">Tablero</button>
-  <button data-p="sucia">Ropa sucia</button>
-  <button data-p="lavado">Lavado</button>
-  <button data-p="almacen">Almacén y resurtido</button>
-  <button data-p="servicios">Servicios</button>
-  <button data-p="qx">Quirófano / CEyE</button>
-  <button data-p="inventario">Inventario</button>
-  <button data-p="concentrado" class="no-lav">Concentrado</button>
-  <button data-p="config" class="no-lav">Configuración</button>
+  <button data-p="tablero" class="act no-vig">Tablero</button>
+  <button data-p="envios">Envíos</button>
+  <button data-p="recepciones">Recepciones</button>
+  <button data-p="paliativos" class="no-vig">Paliativos</button>
+  <button data-p="saldo" class="no-vig">Saldo en lavandería</button>
+  <button data-p="dotacion" class="no-vig">Stock y conteos</button>
+  <button data-p="concentrado" class="no-vig">Concentrado</button>
+  <button data-p="config" class="no-vig">Configuración</button>
 </nav>
 <main>
 
+<!-- TABLERO -->
 <section class="page act" id="p-tablero">
-  <div class="row" style="margin-bottom:10px"><div class="sp"></div>
-    <button class="btn acc-lav" onclick="abrirSucia()">+ Ropa sucia</button>
-    <button class="btn navy acc-lav" onclick="abrirLavado()">+ Ropa lavada</button>
-    <button class="btn acc-lav" onclick="abrirSurtido()">+ Resurtir servicio</button>
-    <button class="btn sec" onclick="imprimirTablero()">🖨 Imprimir</button></div>
   <div class="kpis" id="kpisTablero"></div>
-  <div class="card" style="margin-top:14px"><h2>Ropa de cama y paciente: ¿dónde está?</h2><div class="tw" id="tabEstadoPiso"></div></div>
-  <div class="card"><h2>Ropa quirúrgica: ¿dónde está?</h2><div class="tw" id="tabEstadoQx"></div></div>
-  <div class="card"><h2>Servicios</h2><div class="tw" id="tabServMini"></div></div>
+  <div class="card" style="margin-top:14px">
+    <div class="row"><h2 style="margin:0">Piezas en poder de la lavandería</h2><div class="sp"></div>
+      <button class="btn acc-vig" onclick="abrirEnvio()">+ Envío</button>
+      <button class="btn navy acc-vig" onclick="abrirRecepcion()">+ Recepción</button></div>
+    <div class="tw" id="tabSaldoMini" style="margin-top:10px"></div>
+  </div>
+  <div class="card"><h2>Cobertura de stock (último conteo de cada servicio)</h2><div class="tw" id="tabCobMini"></div></div>
 </section>
 
-<section class="page" id="p-sucia">
+<!-- ENVÍOS -->
+<section class="page" id="p-envios">
   <div class="card">
-    <div class="row"><h2 style="margin:0">Ropa sucia recibida en lavandería</h2><div class="sp"></div>
-      <select id="fSucMes" class="mes" data-todos="1" onchange="renderSucia()"></select>
-      <button class="btn acc-lav" onclick="abrirSucia()">+ Recibir ropa sucia</button></div>
-    <div class="note">Los camilleros llevan la ropa sucia directo a la lavandería. Se cuenta al recibirla, por servicio de origen; la ropa quirúrgica se registra como origen "Quirófano (ropa quirúrgica)".</div>
-    <div class="tw" id="tabSucia"></div>
+    <div class="row"><h2 style="margin:0">Envíos de ropa sucia al proveedor</h2><div class="sp"></div>
+      <select id="fEnvMes" onchange="renderEnvios()"></select>
+      <button class="btn acc-vig" onclick="abrirEnvio()">+ Nuevo envío</button></div>
+    <div class="tw" id="tabEnvios" style="margin-top:10px"></div>
   </div>
-  <div class="card"><h2>Consumo real contra el calculado</h2><div class="note">La ropa sucia recibida es el consumo real. Si el promedio diario se acerca o supera al calculado para un día alto, revise el inventario.</div><div class="tw" id="tabConsumo"></div></div>
 </section>
 
-<section class="page" id="p-lavado">
+<!-- RECEPCIONES -->
+<section class="page" id="p-recepciones">
   <div class="card">
-    <div class="row"><h2 style="margin:0">Ropa en proceso en lavandería</h2><div class="sp"></div>
-      <button class="btn navy acc-lav" onclick="abrirLavado()">+ Ropa lavada lista</button>
-      <button class="btn sec acc-lav" onclick="abrirBaja()">+ Baja</button></div>
-    <div class="note">En proceso = ropa sucia recibida − ropa lavada entregada − bajas detectadas en lavandería. La antigüedad se calcula por primeras entradas, primeras salidas.</div>
-    <div class="tw" id="tabProceso"></div>
+    <div class="row"><h2 style="margin:0">Recepciones de ropa limpia</h2><div class="sp"></div>
+      <select id="fRecMes" onchange="renderRecepciones()"></select>
+      <button class="btn acc-vig" onclick="abrirRecepcion()">+ Nueva recepción</button></div>
+    <div class="tw" id="tabRecepciones" style="margin-top:10px"></div>
   </div>
-  <div class="card"><div class="row"><h2 style="margin:0">Ropa lavada entregada</h2><div class="sp"></div><select id="fLavMes" class="mes" data-todos="1" onchange="renderLavado()"></select></div><div class="tw" id="tabLavados" style="margin-top:10px"></div></div>
 </section>
 
-<section class="page" id="p-almacen">
+<!-- PALIATIVOS -->
+<section class="page" id="p-paliativos">
   <div class="card">
-    <div class="row"><h2 style="margin:0">Existencia en almacén central</h2><div class="sp"></div>
-      <button class="btn acc-lav" onclick="abrirSurtido()">+ Resurtir un servicio</button>
-      <button class="btn sec acc-lav" onclick="abrirConteo(null,'almacen')">+ Conteo físico</button>
-      <button class="btn sec" onclick="imprimirHojaConteo('almacen')">🖨 Hoja de conteo</button></div>
-    <div class="note">Existencia = último conteo físico + ropa lavada y altas que entraron después − resurtidos y bajas después. Mínimo = consumo de un día de alta demanda.</div>
-    <div class="muted" id="almInfo" style="margin:6px 0"></div>
-    <div class="tw" id="tabAlmacen"></div>
+    <div class="row"><h2 style="margin:0">Existencia en Paliativos (ropería)</h2><div class="sp"></div>
+      <button class="btn acc-sup" onclick="abrirSurtido()">+ Resurtir un servicio</button>
+      <button class="btn sec acc-sup" onclick="abrirConteo(null,'roperia')">+ Conteo físico de Paliativos</button></div>
+    <div class="note">Existencia = último conteo físico de Paliativos + ropa limpia aceptada que entró después − lo surtido a los servicios después. Se actualiza sola con cada recepción y cada resurtido.</div>
+    <div class="row muted" id="palInfo" style="margin:6px 0"></div>
+    <div class="tw" id="tabPaliativos"></div>
   </div>
-  <div class="card"><div class="row"><h2 style="margin:0">Resurtidos a servicios</h2><div class="sp"></div><select id="fSurMes" class="mes" data-todos="1" onchange="renderAlmacen()"></select></div><div class="tw" id="tabSurtidos" style="margin-top:10px"></div></div>
+  <div class="card">
+    <div class="row"><h2 style="margin:0">Movimientos de Paliativos</h2><div class="sp"></div><select id="fPalMes" onchange="renderPaliativos()"></select></div>
+    <div class="tw" id="tabKardex" style="margin-top:10px"></div>
+  </div>
 </section>
 
-<section class="page" id="p-servicios">
+<!-- SALDO -->
+<section class="page" id="p-saldo">
   <div class="card">
-    <div class="row"><h2 style="margin:0">Stock autorizado en gabinetes</h2><div class="sp"></div><button class="btn navy edit-only" onclick="guardarStock()">Guardar stock</button></div>
-    <div class="note">El stock de los gabinetes es pequeño a propósito: la reserva está en el almacén central de la lavandería, que resurte a cada servicio.</div>
-    <div class="tw" id="tabStock"></div>
+    <div class="row"><h2 style="margin:0">Saldo por prenda con el proveedor</h2><div class="sp"></div>
+      <button class="btn sec" onclick="imprimirSaldo()">🖨 Imprimir para conciliación</button></div>
+    <div class="note">Saldo = enviadas − aceptadas − faltantes reconocidos (+ saldo inicial). Las piezas rechazadas siguen en el saldo porque regresan al proveedor. La antigüedad se calcula por primeras entradas, primeras salidas.</div>
+    <div class="tw" id="tabSaldo"></div>
   </div>
   <div class="card">
-    <div class="row"><h2 style="margin:0">Nivel del servicio</h2><select id="selServ" onchange="renderServicios()"></select><div class="sp"></div>
-      <button class="btn acc-lav" onclick="abrirSurtido(null,$('selServ').value)">+ Resurtir</button>
-      <button class="btn sec acc-lav" onclick="abrirConteo(null,$('selServ').value)">+ Conteo del gabinete</button>
-      <button class="btn sec" onclick="imprimirHojaConteo($('selServ').value)">🖨 Hoja de conteo</button></div>
-    <div class="tw" id="tabNivel" style="margin-top:10px"></div>
+    <div class="row"><h2 style="margin:0">Ajustes: faltantes reconocidos y saldo inicial</h2><div class="sp"></div>
+      <button class="btn red edit-only" onclick="abrirAjuste('faltante')">+ Faltante reconocido</button>
+      <button class="btn sec edit-only" onclick="abrirAjuste('inicial')">+ Saldo inicial</button></div>
+    <div class="tw" id="tabAjustes" style="margin-top:10px"></div>
   </div>
-  <div class="card"><h2>Conteos de gabinetes</h2><div class="tw" id="tabConteosServ"></div></div>
 </section>
 
-<section class="page" id="p-qx">
+<!-- DOTACIÓN -->
+<section class="page" id="p-dotacion">
   <div class="card">
-    <div class="row"><h2 style="margin:0">Bultos estériles en anaquel</h2><div class="sp"></div>
-      <button class="btn edit-only" onclick="abrirEsteril()">+ Bultos esterilizados</button>
-      <button class="btn navy edit-only" onclick="abrirUso()">+ Salida a quirófano</button>
-      <button class="btn sec acc-lav" onclick="abrirConteo(null,'anaquel')">+ Conteo de anaquel</button>
-      <button class="btn sec" onclick="imprimirHojaConteo('anaquel')">🖨 Hoja de conteo</button></div>
-    <div class="note">En anaquel = último conteo + bultos esterilizados − bultos entregados a quirófano. La composición de cada bulto se ajusta en Configuración.</div>
-    <div class="tw" id="tabBultos"></div>
+    <div class="row"><h2 style="margin:0">Stock del servicio</h2><div class="sp"></div>
+      <select id="selServ" onchange="renderDotacion()"></select></div>
+    <div class="row" style="margin-top:10px" id="servParams"></div>
+    <div class="note">Stock autorizado = piezas de ropa limpia que el servicio debe tener en su gabinete. El nivel conocido es el último conteo o resurtido; tras un resurtido se considera completo lo que se entregó.</div>
+    <div class="tw" id="tabDotacion"></div>
+    <div class="row" style="margin-top:10px"><div class="sp"></div>
+      <button class="btn sec" onclick="imprimirHojaConteo()">🖨 Hoja de conteo en blanco</button>
+      <button class="btn navy edit-only" onclick="guardarDotacion()">Guardar stock</button>
+      <button class="btn acc-sup" onclick="abrirConteo()">+ Registrar conteo</button></div>
   </div>
-  <div class="card">
-    <div class="row"><h2 style="margin:0">Ropa quirúrgica por ubicación</h2><div class="sp"></div>
-      <button class="btn sec acc-lav" onclick="abrirConteo(null,'crudo')">+ Conteo de ropa en crudo</button></div>
-    <div class="note">En crudo = ropa lavada que llegó a CEyE − piezas usadas al armar bultos. Al registrar bultos esterilizados, la app descuenta solas las piezas de cada bulto.</div>
-    <div class="tw" id="tabCrudo"></div>
-  </div>
-  <div class="card"><div class="row"><h2 style="margin:0">Esterilizaciones y salidas</h2><div class="sp"></div><select id="fQxMes" class="mes" data-todos="1" onchange="renderQx()"></select></div>
-    <h3 class="sec">Bultos esterilizados</h3><div class="tw" id="tabEsteril"></div>
-    <h3 class="sec" style="margin-top:14px">Bultos entregados a quirófano</h3><div class="tw" id="tabUsos"></div></div>
+  <div class="card"><h2>Stock autorizado por servicio</h2><div class="tw" id="tabStockMatriz"></div></div>
+  <div class="card"><h2>Conteos registrados</h2><div class="tw" id="tabConteos"></div></div>
 </section>
 
-<section class="page" id="p-inventario">
-  <div class="card">
-    <div class="row"><h2 style="margin:0">Inventario contra el calculado</h2><div class="sp"></div>
-      <button class="btn edit-only" onclick="abrirAlta()">+ Alta al inventario</button>
-      <button class="btn red acc-lav" onclick="abrirBaja()">+ Baja</button></div>
-    <div class="note">Inventario = altas (compra inicial y reposiciones) − bajas. El inventario calculado viene de los reportes RT-ENF-ROP-001 y RT-ENF-ROP-002 y se ajusta en Configuración.</div>
-    <div class="tw" id="tabInv"></div>
-  </div>
-  <div class="card"><div class="row"><h2 style="margin:0">Movimientos</h2><div class="sp"></div><select id="fInvMes" class="mes" data-todos="1" onchange="renderInventario()"></select></div>
-    <h3 class="sec">Altas</h3><div class="tw" id="tabAltas"></div><h3 class="sec" style="margin-top:14px">Bajas</h3><div class="tw" id="tabBajas"></div></div>
-</section>
-
+<!-- CONCENTRADO -->
 <section class="page" id="p-concentrado">
-  <div class="card"><div class="row"><h2 style="margin:0">Concentrado mensual</h2><div class="sp"></div><select id="selMesConc" class="mes" onchange="renderConcentrado()"></select><button class="btn sec" onclick="imprimirConcentrado()">🖨 Imprimir / PDF</button></div></div>
+  <div class="card">
+    <div class="row"><h2 style="margin:0">Concentrado mensual</h2><div class="sp"></div>
+      <select id="selMesConc" onchange="renderConcentrado()"></select>
+      <button class="btn sec" onclick="imprimirConcentrado()">🖨 Imprimir / PDF</button></div>
+  </div>
   <div id="concBody"></div>
 </section>
 
+<!-- CONFIG -->
 <section class="page" id="p-config">
-  <div class="card"><h2>Catálogo de prendas</h2><div class="tw" id="tabPrendas"></div></div>
-  <div class="card"><div class="row"><h2 style="margin:0">Bultos quirúrgicos: stock y composición (piezas por bulto)</h2><div class="sp"></div><button class="btn sec edit-only" onclick="agregarBulto()">+ Bulto</button></div><div class="tw" id="tabCfgBultos" style="margin-top:10px"></div></div>
-  <div class="card"><h2>Parámetros</h2><div class="row" id="params"></div></div>
-  <div class="row edit-only" style="margin-bottom:14px"><div class="sp"></div><button class="btn navy" onclick="guardarCatalogos()">Guardar configuración</button></div>
-  <div class="card"><h2>Datos</h2><div class="row"><button class="btn sec" onclick="exportarJSON()">Descargar respaldo (JSON)</button><button class="btn sec" onclick="sincronizar(true)">↻ Sincronizar ahora</button><span class="muted" id="infoBackend"></span></div></div>
+  <div class="card">
+    <h2>Catálogo de prendas</h2>
+    <div class="tw" id="tabPrendas"></div>
+    <div class="row edit-only" style="margin-top:8px">
+      <input id="nvPrenda" placeholder="Nueva prenda" style="flex:1;min-width:180px">
+      <select id="nvGrupo"><option>Ropa de cama</option><option>Ropa de paciente</option><option>Ropa quirúrgica</option><option>Otra</option></select>
+      <button class="btn" onclick="agregarPrenda()">Agregar</button></div>
+  </div>
+  <div class="card">
+    <h2>Servicios</h2>
+    <div class="tw" id="tabServicios"></div>
+    <div class="row edit-only" style="margin-top:8px">
+      <input id="nvServ" placeholder="Nuevo servicio" style="flex:1;min-width:180px">
+      <button class="btn" onclick="agregarServicio()">Agregar</button></div>
+  </div>
+  <div class="card">
+    <h2>Parámetros y metas</h2>
+    <div class="row" id="params"></div>
+    <div class="row edit-only" style="margin-top:12px"><div class="sp"></div><button class="btn navy" onclick="guardarParams()">Guardar parámetros</button></div>
+  </div>
+  <div class="card">
+    <h2>Datos</h2>
+    <div class="row">
+      <button class="btn sec" onclick="exportarJSON()">Descargar respaldo (JSON)</button>
+      <button class="btn sec" onclick="sincronizar(true)">↻ Sincronizar ahora</button>
+      <span class="muted" id="infoBackend"></span>
+    </div>
+  </div>
 </section>
 </main>
 
 <div class="modal-bg" id="modal"><div class="modal" id="modalBox"></div></div>
 <div class="toast" id="toast"></div>
-<script>
-const LOGO='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAWgAAABqCAYAAACRWstqAABb+0lEQVR42u2ddXgV19bGf2PH4h4iEEODu9NC3d2NeqHuAvXe2q0L1IUWqkBLSwst7h4c4u6enBydme+PpGkpcaF8veftk4enyZw5e/as/e61lwq6rut44IEHHnhw3EH0TIEHHnjggYegPfDAAw888BC0Bx544IGHoD3wwAMPPPAQtAceeOCBh6A98MADDzzwELQHHnjggQcegvbAAw888BC0Bx544IEHXQHZMwUeeOBBW1BWUcOni9bidKug61xx1jh6RYZ6JsZD0H/CWmfDZDQiSfXKf16dlQqnk2CTiUDFgEGSPG/VAw+6GLqu89Rb3/HB92vQdZ2Hrj+D8JAAz8T8LxJ0ga0OHYgwW474/f7kbN6Z9wuvzpqOJBkA2FlRzs17thOgGAg3mog2Wxjg48tQvwASff2IMltAEDxv2gMPOoFvft7Alz9vwmxUuOuqk5l9+0WIosdC+j9B0Da3m73VFawtLWFTeRmp1hreGzLqCILOzivh2ofm4GU2Ikt/CsYQ/wAskkyJy0mpy8memmqWFBUgCwKBikI/bx8mBIYwJSSUIX4BGD0atgcetAv7krN59PXvcKsa915zCo/ffhGCh5z/3QTt0lS2l5extKiA1aXFpNVZqVNVHLrGhIAgRgUGNV5rtzu594V5HMwsYsKQ+CPuE2nxop+3D5sqyht/JwoCgiBQ6XazoaKcteVlvJaeTB9vH04NCees8AgG+XuOZx540BZ4W0zMffpGvC1Gxg6JRxA85PyvJehiu40lBXl8m5/D7uoqalU3ACZRIsxoJMJo4qroGKS/7NBzv/qNFZsP4mU2Ul5Th8OpIsv1Q5cEgTcHjyCjtoYcu41May0Ha2tIt9ZS4LDj1HVEQUADDtRWs6e6irlZaYwPCOSKqBhODgvHJB3/pniH04nd4UZveGYvi9FzxPynT352Bw6XWi+/iozJZPhXPmdMVCgxUf9OZ6CqqlhtTjRdRwAsJgVFUTp1v9o6R+M69fEydcrEesyYKafOyrzsDL7JzyG9zooG+MsKY/wCGRcYxISgYBJ9/OlhNiP/hXiy80p476uVGJT6oTpdbpxuN14YG6+J9/Yh3tvniO+rdDpJra1mc3kZa0qL2V1TRZnTiSQIODSN30pL+L20hCE+vlzXM5YLIqOxyMpxJTxpWYUsW5fEpqRUcgrLKKuqA0CRJXoE+xITGcKowfFMGdWf2Kgw+JscfPTtSlZuPYhBbv01a5rG/dNPZ1C/GP7uHHrmnUUkZxeiiCL3X38GiX16tmn8NbV1PP7mdxSV1zAwIZJHbz3viL8vXb2T+T9vQpHldjusLCYDT99xEcFBvn/OV3YRz85ZDOj8dTJ0wKRIxEYGMbhfDGOGJBDo79Ohd5JbUMqSlTtYvyOZzPwSqqwOBMDf20RsVCgnjO7PGScM61IHWnFZFbPf+BarzUm/2HAeu+18hHYueqfLxRNvfEdOUQX+Phaev++yevJoAsvX7+Gzxesa11yLJ2G3m6vOHMdpJww/6m8tyZ8ii/QMDyChVw9GJMbSO6ZHu4isoLicJ99eiNXmZEBcj3rZauPnK6tqWbFxLyu3HCAtp4jC0hpUTUMQBEL8vYgMD2Jov55MHtWfwf16tToPTqeL1Vv2s3RNEgfT8yksrUbTdRRZIjLUn2H9e3H21OGMGtz7+CPocoedDzLT+Dwni0xbHUZRZJCPH6eHhnNGeASJvv4t2oW/+HE9hWXVmE0GVE3D5VKx2ewE+Hq1+L3+BgMjA4MZGRjM7Ql9ybLW8ntxIUsK89hRVYlT0zCIIrtrqrl7fxKfZmdyR1wCZ0dEI/7DTsWSsipe+/Rnvv5lK+VVVnSgvq2C3kBQkJpdzLqdqXz2wwZOHN2PH969H1E6UqPeeSCThcu3YTbWz11zvRl0HTRN5eqzxjGo31F/Zc22g2zZk1b/Pqtq+Pr1uzAZDW3Q+t0sW7eb9LwyKiprjvr74fQ8vlm6+SjNUxCExhOUruuomva3zUTH39vMQzeeRTB/EnRFVS0/rNjR+Jx//ZwgCAgIKLJIZFgAV541jhlXnoqXxdSmd2J3OHlvwW+89/UqCkqrGt7Jn/OZDexNzWfJ6iRe/3wZd1x5EtdfPBWpC3wepRU1fP/bNlwuld83Kpw5ZRjDEmPbdY91Ww8y9+uVaJpOgJ+Fx247r1mCTssuqpcbkwFN19H+Nv9HzIvdyagBvZok6OblT0Cgnk9FUcTP28SIATFcd8Fkzpgy/Cg5bgq1Vhs/rdxJRY2NspF92qzdzlu8lnfm/056TgmqrjfK2B/IzCtl2/4sFq/YQZDfcpZ/9DC9YyOavefmXYd5ds5ituxJx6UevcbSc0tYtzOFD79fw+kTBzNrxvnERof98wSt6zrf5mbxaloye2uq8JJkzggJ46qeMUwLCce7DceIOpudn1bvQpalRtuytc5OeaWViLCgdo2nl5c3N8QmMD0mnl0VZXyZm8XPRQWUOJ0NRF3Fjbt3cHJeDg/36c9g/8B/hJyTDmQw8+lP2Z+WjyxLCIJAoK+F3j3DiAgLQJJENE2ntLyajLxSMvNKiQgNaFKoFVnCZFQwGmSC/H0wN3cE10HT1WbJyqDImIwKBkVm7Y5kPvjqd+649oxWn0UQwGhQGj/7dwT5+9AvPhKjQfmbtuempLwaXQejQSYk0Pco2fKxGI/SvEVRwGRU0DQds0khOMC3cWG6XG7KqmqxOVzkFlXy3HtL2LAzhfefvYnQIL8Wn6Oq2srMpz/mp9W7kRUZQRAIC/QhMSGiURMvKatmf1oeZZVW8kuqeOjVb9ixP4P/Pnw13l7mTsmE3e7AIMsokoTd6eKzRWvaRdC6rvPJwjUIooDZoCBLIg6Ho3lSkMRGufH1NuPrbWlhE3YR1MxppDn5U1UVt1ulsqaO2joHVbV2Vm49xOrthzl1/ECeu/cSYqLCWpGt+ndtcrrbpOlXVlu5/4UvWPj7DkRRQAe8zQZiIoOJjQypVxJ0qLHayMwrJTO/FC+LidDg5mXjyx/W8cirX1NrdzaYRwz0jQkjNioEWZKwO1wcyiggM68Up0vl+993sGN/Bm/Pvo6Jo/r/cwSdVlvN04f2s7gwH0kQODO0BzNiE5gSEtauo9mew9mk55YgN2ghgiBQ53CRW1TOwL49OzQ2URAYERjMiMBgbq+t4eOsdL7Jz6HM6cQgSSwrLWJLZTl3xiZwa1yfYxr1cTg9l2sfnktOUQWSJBIW6MMNF07hvJNG0isy5AhtTNd1Siuq2bkvA2+LsVVN9qk7LuSMKUNbvM5gaF0cDIrCa58v48SxiQzs26tTz3vFOZO4+IzxR2te+9O56K43cbpUhvXvyfdv3n3U8fUP8m/6OO9mzOB4vnrtjsZjuN3uJCO3mB9X7ODLnzZhcwis2nqIx1//mnefurFZe77d7uT2pz/hpzV7UBQZb4uR2y6dyuVnjSc6IrjRlKLrOpm5xXy+aC0fLVyL3Smw4JetSKLIG49Pb5RhOhT7b0fTNARBxKjI/Lx2N3flFLVZE0s6kMHqbYcwKjI64HKr1NkcrdvYHS5mXH4y999wZovXKbLULvlzud04nS6KSqvYvi+dH1bsYMOuVDRdZ+n6PRzKzOe9J29g5OCELllXdruDO57+hB9XJ2E0KMiSwEUnj+LqcycysE9PzOYj14/VauNgeh7ZeaX4NLO5Llq2mftfXoCq1duup43pz53XnMaoQfEY/3K6rK6pY/WW/bzy8c/sS8snt7iSmx//kG9ev7NN66fLCfrbnCyePLyPdFsdo/wCuC++L+dERjUcamhneE8ODqf7CM1PVTVSMgo4bfLQTo81ztuHZxOHcE3PGN5MTWZRYR4iAlZV5enkg6wtK+GFAUPo7evX7eRcZ3PwwIvzySmsQBAERiXG8Nasa5s9XgmCQEigH6e2cR6MBqV5DbodmhjoVNbaeOKt71nw2h0YOuFQkWWp8XT0V5iMyhFa8d8XUJs2YlFofF4zBny9LYQG+zNmaB8mjujLrU99AgL8uCqJmy5JZ8Sgpslgzvzl/LRmNwZZIjjAm/efvoGJI/s3+T5io8N44s6LGTs0gZnPfEY1MP+XLYwcGMf0i6d2eJ6qaupQVQ1ZEUEXKKmoZcFPG3j0tgva9PlPF63FandiVBQEoX4Dq6q1temziiJ3Wm7+Ln9m6v8NDvQjsU9Prj53MkvX7OTpdxeRlltKZl45Nz/+Ed+9eRdxPcM7/d1vfP4LP63ZjdEg4+9j5rWHruDMqSObvd7Ly8zIQQmMbEYm0nOKeKwh7FDTNGZcPo3ZMy7A0ITC4Otj4ZyTRjFhRF9uf/oTlm3cT2F5Dfe/+CUL374XSysmNrErY5kf25fEzbu3U+Fy8WhCP5aMncy5kdE47E5KyyqbtIHWulwU22xH2RkBkjMLm1wISYezupQc+/j48fawUXwxYiyDfHxxahpGSWJ1eRkXbN3AzwW53U7QX/20gXU7U5AkkX4xYXzy/C0t2r46Rq4dh6bpBPl5ER8RhCSKrNp6kI++Wdlt5rGjjORdiNNPGM4FJ42o1yQdLlZtOdjkdVl5xcz9eiWKIiHLIq89clWT5Px3nDp5GP+5+2IEdGRJ4o15yygurey4T6KqDpeqIYkCgb5mFFniu2XbKKuobvWzmblF/LJ2N4osE+hrRhAEHC6VimrbMZGbttxHlETOmjqS7968m6F9ohAEyMgv5dFXvsLlcnfuVJqWy3tfr0JRZAyyzNuPXdMiObeJ8D/7hfzSKlRN47ypw3nqzoubJOcjzHkBvrzzxPUkxkcgiSJb9mWw4KcNx6ZYUpHdxvU7t/BqegqJPr58PXIcs/sPws9gYO+hTA6m5uDlZT7CvFHndvP8oX1MW7+SaRtWcfamNSwvzD/ivtW1dUeZRGRZYvehbKprrF1ODCeGhrNozCRmxsSj6zqyIFDscnJz0nbeTj3crdrzZ4vXIUkiogCPzzyfHqH/jA28WYLWdfx8LDxx+/l4mQ1IksQrn/7CgZRs/j9i5KD6dywIkFdU0eQ1X/+8iaLyGtxujXNOHMapk9p+arv4jPFMHTMATdPIKihn8e/bOm7isNoazXPXnDsRi8lARl4pi5ZvbfWz85dspKi8hkBfC1eeM6FeEdLr/TvHG3pGhDDnyesJDfBBkWV+33KAX9ft7tQ95/2wnvLqOtxulSvPGscpnTx5Z+QU8XPDiSrQ14tHbj23zeGugf4+PHzj2QiAJIp8sWQDdruzewk6s7aGK7ZtZHFhPldERrNozEQmhYRRVlHDl4tX43A4GZoYj9lkPGKxzz6wm+dTD5Fht1HicrKlqpLpSdtYVVx4hDnj75BEkZzCcrbvTe8WIfEzGHgmcQjvDxlJqMGAqutogsCTyft58sButC7W5gB27kvjUEYBOjC8fy+mjR98XJKa0+XihLEDue3SqbhVlfKqOma//i0Op+v/H0Prf/5rbML27nC6+HXdHmRJwmiQue78ye26vSAIXHf+ZERRQBRFlq7Z3WI0RGs26D/Ww2lThjF2UByqpjHvxw0t2pLLKqr5btlWdB1OGjuAySP7o2v6EaR/vKFPXCQzLp+G262i6fD54rVoWsfWXE1tHcs37kOWJHy9TUy/cEqnx/f7xr2UVdbiVjVOmTCQhF492vX5kycOJrF3JACHMgrZfSir+wj6UHUll23fyPaqSmb36c/7w8cQYjKzfU8q78xbyqjBvRk5pM9RWnBKTTXfFeTiJckogoAkCJhEEZuqMjcjtfE4ZDYZ0dGPcg653BrftUF76AzOjoji21HjGe7rh0NVMYgSb2ek8ei+pA4vtOawKSkVp0tFUzWmjkts0i57vJCay61yxzWnMSoxBkEQWLXtEJ9+t+r/HT/vPJDR6BdJTIhswjRQQnpuCaATHx3CkP4x7f6OMUMSiAoLRBAEDmUUUFRS0aGxVtfWNcR+K4QH+XL1eRNRZIn9qfn8vmFPs59b/Ns2MvJKsZgUrj1/MoF+FgyKhKbrVNXUHbfv5uIzxtEj2A9JFNl1IIus/OKOmTcy8sktLEfXdRLjI+nTBSbDTUmpCIKAKAqcNrH9ipTBoDB1zABUVcPucLF1T2r3EHSmtYZrd2whzWrl9cQhPNpvIJIg8Nn3q1mwZD23XXkafeIim/xsnt1GnaoeFW8siyJ5dhsOtT47q0eIH+hNh339um4Pyel53Soo/Xz9mT9yPKeGhGFXVQySxAfZGTx+YDea3nUkfSAtD0EQUBSJ4R0gAtoYvUKXZF5pWMwmnrnrYiwmBUmS+O+nv3AoLff/DTlv35PK4hU7kSSR4ABvJjUR8pSRU4jV5kDTdAbERRxxAmwr/P286d0rDF3Xqai2kpZT0jETYnltYwSNIAicNGEwifGRON1uPl20FrVhvfzdbPb5jxtQNY2xg+MZMTgBWap3yuq6TkFZTZtPAscaYcH+DO3fC1XTqKixcSgtr4NRUfnYnW40TWNI356dzrx1Ol1k5BQjCAK+XiYGJER16D7D+vdCkkQEQWBPcg5dHsVRZLdx3c4tpNdZeWfwcC6JjsHlcvPEm99Qa7XzwoNXYmlBoEOMJoyihPq3HULVNUKMxsaSoX1jezQpIKIoUFlj4615y3jrieu7VViCTSY+GD6aGUnb+amoAJMkMScrAx9Z4aF+A7vAeaJRWFpdT9CyTEhw10eMGBSZ5z/4kblfr2jy725Vo1ePQF5/7Jo2JaAAjBnahxsvmsLrny+nrNLK7De+Zf4rd6Aox0favCgKTabL/7ImiSffWki11Y7T5ebGC09oMo05M78cd4OJLSYypONkE+SHpmm4ESguq+qYBt1gjlAUCUWRMRkNXHX2ePam5LBpdxpbklIYP+LIDKPfNuxhX0ouBlli+gWTEAUBg1FpTAD6w2zSEkwGhW9+3cyGnYebdfyZjQpvPHZ1u/MSWkNifARL1+5GF3Qycju2seWXVKHr9Wfw8NDOZ3ZW19ooKq9BECDA10JwYMeyUcNCApAlEZeuUVpeU+8Eb2YjbPdqqnO7uT1pO3urq5g7eAQXR8dQXVvHzKc+xsts4o1Z1zYbn/oH+vv6clpIGN8U5GGRJERBwK1rSAhM7xnbqO0N6tMTP28TNof7qAVnNMh899t2zpk2gpMnDunWxe4tK7w7dCRC0naWFBVglCReTU8h2uLFFT1jO3Vvl0vF6XQiCA2xvYrSLWR1IDUPdxOa1h9j6B8X3mQkTUu4Z/qZrNl2iN3JuazYfJCPv1vFLZeffFyQc2lFLUtW7cRud2KzO0jOKGDLnjT2JOfgUjU0TeeacyZw9/Qzms1Ua5Q1Y8fDzML/korekYgEXddxOJwICMiy1BjWeP6po3lnwe9k5JXx2aK1RxC0qqp8tmgtLrfK0L7RjevDZDA0am42e+tx0JIokJ1fSmpWIc1F9nibDdTZnF3+DgP8vRsDeKqtDjpsuxca/AzGzq+rOrsDZ8M7lCSpw7Htgb4WvMwGKqptqKra4KzuIoJ+5tBelpUU8cbAoVwcHUNJWRXXPzKXiLBA3nr8ujbVVZAFkRcHDsUiSSwrKaJWVellsnBnXALnREQ3XhcbHUafmHB2HMjGIEpHHb1cbpVHXv2avnER9IwI6XaSfmfISBw7t/BbWTGKKDLr0F7ivbwZExTSKTIRJakxkkxD75YIjN4x4fg1kxHmVlViGsLn2gNfbwvP3nUxl9zzNg6Xm/9+spQTRvenb3zUP0rQiixxOCOfqx94989jukDjgooODeCWy6Zy86UnNWvvlySpsaJHZ0LN7H9xoHbEWqC63dhsDhDAqMiNyUQhgX5cdOpo/vvJLyzbuI+Dqbn0bzhyb05KYdPuNCRR5KpzJmAxmxrjy80NRFVrbV2DVjWdyLBAwprJtPxDgzZ3Q5Gov5ptOmpmkWWp0UTaFW4jSZK6xOTjdKm43VrXZxJ+nZPJu5lpPJTQl+mxCRSXVnLFfW8TGujLm7OubVfRmyCjiTeHjiK3zkqV20WU2YKfYjhqgk+fNIStezNAkZpciOm5pdzx9Kd8/vIM/Hy8upekFYW3hozgsm0b2V1TTY2mcv++JBaNnUSw0dRhITIbDYCOpunU1XV9+JPT6WbWredx9tThXX7v8SP6cfMlJ/DaZ8soq7Ty9NsL+ezlmf+4o1OWJYItRnQdrDYHoijidLmZft5EHrr5HIIDWzYlBft7IwoCOjpV1R0P6fzDfAW0mpTQJMG73FTV1stEkK/liKy9K8+ewGeL11FcUcvnP6zj+fsuB+DThWuw2hzERYZw/imj/2KykPG1mECHsiorqqa1uCnbnS4uO2Mcj9xyzjF/f3mF5SCAiEBEsG+H7uHjZW7cZK3WzjtFvc1GfCxGyqut2B31J7OOpPH/UXIAof501lJt7TarTKk11Tx8YA8XhkfySP+BVFbVctX976DpOnOeuqHDx8AoixeJvv5HkfMfOPekkQT5ezcbOWEyKqzbmcyMJz6i+hh4pkNMZt4cPIJQgwFRENhXW8N/Du3vxB0FYiOD0HQdp9NNZgftbW2pi9FduPu6MxjSNxpBFPh14z4+X7SafzYcUGVQ7yh+++hhfvvoIa45ZwI2uxNRFNi2P6NNZ5TY6BAUud78djizsGMnF1Ujr6gMQRAwGxWiw9tvp7U7XI1HfC+L6QgNLq5nOGdMGgw6/LhiB6Xl1aRmFvD7pv0IgsAFp4wi5C8bkaLImM0GEKDaau90Ekh3QdM09iTnIgoisiwSG92xUqexkcHIDSadtOyiTo/Lx9tMjxD/+g2u0tps/HxryMotxt1QPComMrjzURxuTeORA7sJMRj57+DhOO1Obpn9AblF5Xz8n5vx8+245qrqemNVqaYXShhnTBqEw9m8MJmMBpau28utj3/QZNW0rkainz/P9RvUUMdaZH5eNks7kW04tH+vRifppqQUuic7r/vmw9fbwtN3XohJkRFFkZc+WkpaVmGbith0Vyai2WQktmc4cb168MQdFzF+aDxuVWP34Rzue+GLVskpvmc4gX5eCILIwfT8Djn4sgtKSc6q9/qHB/kRGxXSgToSzsbjvqWJlPdrzp+Cr5eJvOIqvv1lE/N/2kB5dR0h/t5cdc6Eo47oJmN9USC3243DcXzGr+87nMXe5FxEUSAqNIDE3tEduk//hCh8GuqmJx3O7nRyjiiKDEiIRNM1bA4XW3endug+G3elgF5f029Yw9rvFEHPz8lkfVkpbw8ZQaBi5OH/LmDFloPMfer6VqtONavlaBqbSorYU17aqnPqlstOwt/H3GLAutlk4JcN+7j6gXfJzi/pdiE6P6on10X1wqFpaMDzyQepdHbMWTJhRF/8vM3IksTKzQeOySbT1Zg8OpEbL5qM261SXF7DE29+i9PpQhCFf4yk/4CXxcQrD19FWKAviiSxZHUSb3y2tMXPh4f4M6RvNJqmk19SycpN+9o9hl/XJlFeVYuqaYwcFIdvB0xwNrsDl1ttcHQdfcockRjH5BF9QIC3v/yN+Us2IiBw5pQhR9WxqA/llEGoT8SxO5zHpSy9O/83am31zz1tXCIBft4d06CjQhkQH4mu66TnFLNxR+ezgU8Y3R9JrNfKl6ze1WSIY0soKq1gzfZDSJJIoJ+FccP6dI6gC+02Xkg+yP0JfRkdGMyc+cv44LvVzLr1HCaPTuzQQ64sLuCepG3UqiqDA4Nb7cSd2Kcnl58x9giHS5MkbTSwcXcal93zFkn707tdkB7uO4D+DY0C9tfW8GFGx3bU3jERTBreB7eqkZlfxvvNhMMd77jv+rMY0jcaURRYvmk/n36/qtVKZ8cK/eKjeOHeSxCE+rDDVz/7leVrk1qM/73o1NEI1HvYP/hmVZsqwP2BispaPl20tsHbL3DhKaM6NO5aqx2X2w3omExHRyIIosA1509GlkRKKqyUVddhMRu4+rxJTd7Pq0ELt9ld3RJ90Vl8+cNaFq3YiSJLBPhYuP7CE+iMH+KiU0ejaRqqpvPG58twdHJTmjSqPwk9QxEFga1701nWzlT0T75bQ35xJaqqMX5o71Y71bRK0G+kHiLcZOKuPv3ZuP0gT7y9kFPGD2TGVae1++HSa2u4ccdmHtyXxPSYeE4Oj0Bqo3H07uvOICEqpF6baAEmo8LhzCIuu+8dfl61o1uFKcBgZHafAUiCgCKKfJyTQba1lvbbhwVmXnkyZqOCLEu8Pf93flq5/f8dQfv6ePHMXRdhVGQEBN5esJKisup2R4d0F849eTS3XHIiDqcbl1vjoVe+IiOnedvk6VOGMaRfNDqQdDib/374Y5u192fe+Z7krGJUTWPisN5MGdMxZaas2obd6aqvQR3QtCZ54thExg2Ow6iIGGSRk8f1Z3hifJPXhgZ41zvN7E6qrPbjjpwfee1bEAScLjczL5/WGJnSUVx46hgGNmSKbtydytNvf4/eiZAOX28L118wGZdan4r+1DsLyS0obdNnN2w/yNxvViLLMiaDzK2XTWs1KqTFlZNcU82i/DxeHDiU2spa7nnhS8wmA/+599J22Rc1XefTjFRO37SGFaXFfDRsDCMDg9s1MaHB/syacV6bwp6MBpmyqjpuefxj5ny5rFuF6tQeEZwVGo5b0yh0OJjbQS167LC+3HbJCTidbhwulZnPfMacL5e1SWtrS+q5ohwbTXbSqAFcd95EnC43dqcbh1PlH25Qc+Sp55ZzmTKiD6paX8To7v/Ma9Y26WUx8eTMCzAbZCRJ4u0FK3jm7e9atGVWVtfy4ItfMG/JRmRZxN/bzOwZ53fYHm+ts6E1hCL4epubLeX50X9u4fdPHmHlp4/y2qPXNpmoA+DtZWrsBmNrg01Wlrpmc21O/nRdJ+lAOjfPep97XpxfLzMOFxedMpI7rz29C5QGC081+EckSeK9b1cz86mP20SqzRH51edNZuqovrjdKqnZJVz70Bz2HMps8V5LV+/k5sc/xmpz4nS5uO78SUclF7U7zO7ttGROCwtnVEAQ9/3nM3YfzuH5ey6mf0J0u5rEztq/m+8L8xGAD4aOZEhAxyq1nXfyKNZvP8SHC9dhaSX2UpFF3JrOrDe/J7eonMdvv6jVBBo6FIMhcG9CP34vLcaqaSwuzGNGXG+iLO23Nz5w07lkF5TzzfL6ymez31rId8u3cd7UEYwZmkB4sH99RxVdp7yihgNp+azYtJdhA2KY2cKJRhRFtu9Nb3G3VlWNwf16EhXW+Sp69994Nmu3H+ZgRsE/5ihsDhZzvT36/Ntfo7C8mrXbD/P83MU8c89lTV4/eUwiT91+AY+89i068Pq85azdfpgrzhrPqEFxjfbR0ooaNu46zIKfNrEvLR9JFJEEgefvuZjhA+PpTLH+P8JOvCzmFhWY0GD/Vu/n1RATrWl6q9mEkiiSnFXIsvV7WpSb2KgQ+sdHtln+HA0hamnZRWzdm86ug1nUWOtDIdE1pl8wiWfvvrTVEp5txdRxg3jyjgt47PVvEQSBr37dyvqdyZx94jBOHJNIbFQIJqMBvaGIVHpuCet3HKKsspa3Zk8/KjvWbDLy6qNXc+X973IgLZ/dyblceMcbXHzaaE6fPIReEcFIkoTD6eJAah4/rNjOz2t343JruFxuzpg4iFkzzu9cHHR6bQ3bK8tYNP4E1m7ex6c/bGD0oFhuunRamydmb2UFt+/Zwd6aagTg/PAIzo+Mbmfmoou56Sn4ygo3xvVm9u0XsvtwDjsPZrVKuKIoYFBk3l2wkoLiSl595Gr8O+hwaAn9/fy5LDKa97IyKHQ4+Coni/v7Dmj3fUwmA289MZ3I8AA+/G4NVrtK0qEcdh7IwmxU8DIbEUQBXa/vkWe1ObHaHFTX2pl55Wk01xPBoNTXJG7JGWuzOfnguRu56uyJnTf9+HnzzF0XccUD73ZZPeGuREJMD16471JumP0hokHm/W9WM7hvzya7uwDccMk0DAaFp99dRGlFLTsOZrHjQBbeFmNjcwGb3UmtzYEo1Lck6xHszXN3Xcx5p4zp1Fira+rQ0REQ6kPkOok/WjtpmkZ1bV2rJ9EfVuzg+xYKk9XZnNx19am8+MDlNF9q4G/yp/+ZiUhDBq0AJESHcM+1p3HpWeOBrj123XjJNAJ9vXjynYVkF1aQV1zFuwtW8sG3a/D2MjWeFFwuNzV1DuxONyH+XpSWV9OjCaUlJiqML16ewd3Pfc7ancmUV1uZ89VKPl64Fm+LCVEUUFWN6lobbq2+rK0kCFxzznieveeyxuShDhP0l9kZnB0RRTASV839AZdL5e5rT2tzYPamshJu2bWNfKcDoyRhQOCO+D7tmvjk6iru27eL1WUlPN+/vnKUn48Xb866hovvepOi8ppWnVCCUN9ZY+GKnZRV1TL3qRu6pdbyTTEJfJ+fS7nbzfcFudwSl4CP0v4FZTIaePLOSzh14hDmfLWCjbuSqaiuo87hwmpzNgbeC2J9A9SYiCB6RgSh6RqiIP6t47KK3eFqezcbnWZbSNkdLhxOd5vzHE8YO5Dp50/izXm/oTfcoz3NAewOF06X2r7P6fWfq/9sy58788QRzLwsk5c/WQoIPPDyAmKjQptts3T1eZMZNSiONz/7ld8276es0kp1rY3Kmj9qNYMkiYQEeHP6pMHccfWpXdINJL+kCrvDhSgIGA3GTt/PbDLgcLlwOCGvtLpZrdjucHU6a64l+RMFAS8vAwG+FgYmRHHGlKGcNXU4/r7ebU+Bd7btXf+BC04by8jB8bz/9Qp+Xp1EXnElLrdKWWVtYxiq2NDINtjPi4G9o3C1EKURGx3G12/cxWcLV/P54vWk5BRjd7qx2Wvq16lQ/5wWk4HBfaO59bJpnDttZLuSEgS9CRWn0unkuu2b+GTMBJYsXs9tz3zGCaP6svjd+9tUDGdHeSnX7NxCcUNDVoemMS0ohK9GT2jzS/82J4uHD+5BEQReSRzKmRFHOgt+X7+b62d9iMOlIrUxlMvmcDGsXzQfPXdzuzrrthX37N7BZ7lZSILAR0NHHpG23lFk5hax+1A2qZkFFJbXous6BkUiLjKYuJ5h9I+PbHbD2Xs4m+yCMqQ22BFVVWNIv15EhQcexdobd6VSXlWLt9nIhBF92pwxWmu1sX5nMmpDN5axQ9vWdr6y2sqmpPoedYF+Xoxrx+c2705FVXWCA7wZM6TlnnYOh4u12w/hVjVcbpXYyGAGtaHXZWZuMbv2Z3AwPZ+y6joEIMTfi/7xkYwYGEdkeNcVDtqXkktWXkl9G7RBcUc10G0vCoor2HUwC03X6RcXQULPo9dBZl4J+1Ny2yQ3blUjLiqUAU2UbG1O/nS93rYdHuRDRFggQQG+HTL9bNiZjMutEeTfdtn6A+WVNew+mMXhjLyGwlj1Wm5UqB+x0WH0j4sgrmd4m+bgj/Hs3J/OvuQcMvLL0DQdoyKR0DOUof1jGNS3V4eya5sk6IW52WTYrcwMj2HKdc9xKLOQT569kQtOG9vqDbOttVy4dT2ZNhuGBu+9TVV5sf8gboprfRKrXU6ePbSf97LSOCEwhFcHDyfeu+mqUV//tIF7Xviy/gAotD0za1DvCD75zy3EtbPYdmvYVVHGOVvWY1VVzguP4OMRY/HAAw886CjEpk65OyvKuDomnm+Xb+FAej6D+0Rx2pShbUo+eXj/btLq6hrJWQfMoshQ/9bL/e2uLOeCzet4PyuNe+P68NXoCc2Ss7XOzr6U+spk7enoYTIq7E0t4Ir73iEtq6BLJ3OIfyDjA4LQgc0VZeTb6jwS5oEHHnQdQefVWelhNhOCxKeL16NpcOHJo9pk1J6fncGykiLMf0k80XUdH1khwtSy7fqLrHTO3ryOXLuNecPH8MSAwZibOUqnZRVy5X1v8/Inv9AvJpwLTh6B0+1uczsqk0EmOaeY6Y/MJSO7sEuL4l8QEYUIFDscbCgt8UiYBx540HUEnVJTzUkRkWzccZg9KTmEB/m0qQpaucPBOxkpRyUl6IAiSXjJTUdcVDgc3Jm0jdv27GC4nz8/j53M2S3YbpevS+K8ma+ybOM+Lj5lFN+8cScfPncLD99wJrqmtbmmscmgsC+1gOsfe5/8ovIum9BpoeFEmUy40VlZWuSRMA888KBrCFpv+EVfiw9fL9uC1eZk5MDYNnmjfyrIJa2uDqUdHsqtZSWcu2Ut83KzeTC+HwtGTyDex7fZ+rCvf/ozVz4wl+LyGp6780I+fv7WRgfZ/Teew0v3X4Ysik02m23O3JF0OJebZ39IZVVtl0xosNHExMBgdB12VlZQ43J6pMwDDzzoPEG7VJUEH18qK2tZu+MQsiRy0riBrUZeaLrOj4X5Tfa9EwC3pmJT3Udc/356Cudu3UCJw8EXw8cwe8AgzFLTJo2Ssipumf0hj772LdHhAXz1ygzuveHsoyJKrr3gBN6adTVGg4zb3bYiJmajwvpdKdz3/DycXdSd+pTQHiiiQK7dRkptjUfKPPDAg84TtCKKRFi82LYvndyiSvy9zYwf3qfVm5TY7RysrUFuiqAFgVq3m2KHvbH40k07t3DP/iRG+QewZOzko0Lo/oqde9M4//bX+OKnjZw3bTg/zLmPE8cNavb6C04dy9wnp+PnbWq1bscfsDTEST/zzsIumdSRAYEEK0bqNJW9VZUeKfPgfxu63ua16AHNJ6r8oSmv234Qu9NNv5gexLfBvJFlq6Pc5WxWg65TVQ5WV+FQVW7fs5Nkay33x/floT4DsLQQU/vVkvU89OrX1NmcPHPHhdx93RnNxmE7VJVat4sgo4kzThiO2ahw8+MfUVlrb1NFNZNRYe7XK4nvGcp1F57YqUntYbbQ19uH3DIb+2qqPFLmwf8UbBUlzHz6c7KrXIhouHSZO2++gPPHJXgmp7NOQk3T2HkgE3Sd/vER9amhraDKaUfT9Wbz1QyiyCtpyVyyfRPVbhefDx/NUwMGN0vO1jo7j74yn5ue+JgAHwtfvTKTB246p1lyTq+t5sIt67h46wbsDZk/J44bxPtP34C/t6lN/b8EQUCURJ54eyEbtx/sdDTHCP8AdB2Sa2uPy3RnDzzoJnWZj+f9yPdrDrBzXxqb9mZz4tRxnDUm3jM1XUHQxWXVpOWUIEkiA3tHdln4WbrNSrzFi5/HTWkxwy4jp4gr7nuL1z5bxlmTh/DDnPuYNmFws9f/WpjH6ZvWkmqt5Z74vhj/kvlz4rhBvDXrWkxGuU2OQ0kUsdpc3PPilxSWVHTqmYf4+aMIAiUOO3Vut0fSPPifwIEdO3hpwSZ0QQDZyKz7ruPxqyeh/EONG/51BJ1TUEpVbR2iKLY5HdosKwiC0GKdBgkRURCINDcfD/37+t2cc9srrN+ZwtN3XMBnL82gV2TTBa1dmsrLh/dzxY7N9PHybgjPizoq7/+0KcN4a9bVWExKm+KkDYrE4cyi+rqxndB8Eyze+MgyxU4nFW5PJIcH/wvKs0pScgEnTBnFRaeO5tmHruWhyzzZtHSVDRogM68Um92Fl9lAdHjbigr1MJnxkiTqNK1ZM4ciCuysquS99BTu6t3/KLPK2/N+5al3FhMe7MeCl2dwyuTmMxfz6qzcvy+JpcUFzIhJYHa/gS3ass89aTTb96TxzterMLWhhKHZaODb5ds564RhnHHiiA5NbKjZjI+sUON2UeN0gdkjbB78yyFIXHH52VxxuWcquo2gi0sr0HQdk9FAoF/bahpHmS1Em8wcsNYcVVHt71Ei72SkcVpYBH1967sNl5VX8/ArC/jyp02cMXkw/33wSmJa0NzXlxRx+56dVLhcvD9kJJdGx7Ra9eq9BcuZv3QLuqbjdLlbrVEsCPWfe+WTpUwZk4iXxdTuifWTFcIMBsqcdmrdHQvfKy8rY8/hHNKzikgrqEDTBRSDgYToYCIjQkhMiCI80PuYC01Odi4HsysQJQFd0zF6eTF+SBzyMTrFai4HW5LSqHVpoOsYLWbGDo7HIB2rAbjZsTuVsjo3rTWL0VSdXr0i6Rvd9RUUq8rK2X4oD/3v5gNdRzYYiA4NICwkAG+zckympaaqkq37c9AR0HSNoKBgRvSLOGZy6bLXsTEpHadWv4Y1DRL7xxEZaPlHyLW8tIwd+9LZn5JHYbUdSZKIiw4jISaCIf164u9laD9BZxdVgF7fz8tsblt5Q6MkMSEwmN011bTUuEMSBMrcLp48tI/5oyeQnJbHtY/M5WB6AbNvO5d7p5/ZZGPMP4h2bnoKjx/ex0BvX+aNHMsgv4BWK1Y99urXzFuykWB/b56YcS57DueweOUujAalxQJLBkUm6VAOS1Zs57IO1Eg2iCIBBgNOTcfazsaSWekZfDD/d37afIi80lrcmgY6f5YaFQQkSSIkyJ+xYwYx69ZziAs5RkStu3nxlc/4ZG06JoOMrqko3gH8+vlshkX7HpMhOKvLueexdzlQ4UDUVMJiYlk77zHCLMeIoF02nnzuI1ZlVGBsJULIZndyx8zpvHjz5C4fxuHde7j0vs/QDIa/nVx1REnCx2IkOCiAcSMHcPW5ExnZp0e3TkvW4YNccff7uDDgdDqYevIp/PjyFceMEHds3MKFD8xDk2UEwOZwc9ttV/PKLSceU2LWXXY+mfcTby3cRE5JDaqmN5p/BQEUWSEyIpQrzp/KnZdPxii2wwZdXWODhpqostz2bhjn9IjELIqt1gs2iSK/lRbxZV4mKal56JrO/Jdv45Fbz2+WnMscdm7ZtZWHDuzh0ohoFo6d1Co57z6QwcV3vs4ni9YxrF9PFrwyg7unn8Xcp2/khgsm4WhDhp8gCsz7cUND0852NxrELCs4dZ3KNhO0xqLvl3Lmra/x9g9byS+vQ1FkjAYFRZEwyBKKIqEoMrIkUFZWzsJfNpNdfux6y5XlZbP+QAHeFiMGg4zJZMRZW82Pa/Yfw6N0fSMGo0HBaFAwKDLH2gWlNH6/jNEgY1BkDIrUxI/cZW2jmupUcuQYJCRRqO86DVhtDjKzC/jsm2Wcd+vLvPL1JrTufC1HjEc5xg2DNZau2Y0qyZgMCgaDgrdZYdW6nZTb1WNohnfyn5c/4b53fiWvvA7DHzIq169fg6IgiZCZmcP3q/a2ypdyR/rb0WRyRhDjA4JYXV6KsZVznyyIPLl/L9+NGs/GaU8itbAR7Kwo4449O0mvq+W1gUO4Ibb1kqVf/bSBx17/huKyGq47fyLP3nUJwUH1JhWDQeH5+6/AZncyf+mWxo4YTbfNkkg6nM2B5ByGDIht/yIWRQT0JhN4mgpP+uKT73hg7m+4JQWLyYCq1hc89/WxEBzgg9xgUqittVJWVYfd6SIoIoKEHn7HTABXrdlBTpUDo9FQ70QVBGRJ57e1u3jg8nFYjo8m3hz7XAy9uRyNYxJmqes6JouZsIB6s6TL4aSorAqbW8diMuK21/Hsa/Mwe1mYcdaQf9381xTns2xbOooio+v1ndhlSSI7I4sNBwo4e3jUMRnH1rUbeXvxDoxmI6JQ36HFx8ebkAAvBKCmppaSilrsLo3hgxIwie0kaKezY50UJFFkZmxv1leUNh7FWzJ1VLrd3Ls/ie/HTCSgmcYu87MyePDgHiKMJhaPnsiYoJBWjpMOnp+ziDe//B1fLzOvPnQ5N1wyrb7X2d/asT9372XsT81jb2peszZpQRCoszlZvfVghwhaB4yiSFAbTiLb12/gsQ9+R5UVFFHA6XQRERnB9RefyClj+xEd5o9BFtE1jcrKalIz8lixLonMOoUg72NjY0R1sHTdAXRRwqXqnHHiMPbs3E9elUZqchrbUkqY0i/kf4qYNU3D6O3H67Ovo1eAsckyCGGh3T8nTqeL0dMm881jFwLgsNtJTsni4/m/8t3GFGRZRtFdvPnJT5wzqT9RfoZ/1XvYtm0vGWU2BEkislcv+gcJ/Lo9E81tY8mq3ceIoDV+WLEDGxIWob6jzAknjOfJW04nLiIAEZ3y8ir2Hkzjm6VbmTA0pv02aINBQdd1dE3D3c6j/QmhYZwbFsG3BXlHlBxt0m4tiiRVV3HX7h18MHwMxr9cX+Ny8dTBvbyflc75PSJ5aeBQwlopV5qeXch9L3zBL+v2MmZwHC8/cDmjhzafpu7n68Ujt5zD1Q/NbXFDEUSB3YeyOhqzjygImMSW58Jtq+b595ZSo4mYlHpyHjpiGO89cRXxYUfXww4PDyE8PISJ44bidrnpphP0UchOSWHDoUIUSQDFzM1XncbnlQV8uyMf3VrN4lV7mNJvGv9rECWJIYlxxAUY/uFxiI19Oo0GhZEjBjI8sRflM17it4MlGGWZ4vx81h/I47Jxsf+eF6C7WPR7Em4kcKmMHTeCi/uILNuahqJIrN2QRP7NpxDh082KjNtORlY5klSvSMkWHx6acT6JPf/0zfToEUKPHiGcMnVsm3IzxKbsWgBut4rd7mynaVDgkb6J9eU223CsM0sSPxUXcv/endgaNoND1VVctGUdn+Zk8lS/RD4aPqZVcl6+LolzZ7zK8k37uemiKSx8+94WyfkPTBs/iPFDE1rsaSaJIul5pW0uvnRkAwM3iiDiq7QsGFvWb2NDcglGRUJTVYJ7RPHOE9c0Sc5H7bDH0P66cm0SJVY3uqYRFR3FiL7RTBoeD6qKIous3bSHSofG/yJcLvfxkMR39AI3+TBtVByaqgECuttNTl7Fv2ruy3NzWbs3F1kWEWQDE0f2ZfSIfvTwNaILIiUF+azenX0M5l/DremNNS70hhNUs9zSBs3qqCu8LEYEwO50UlFlbfcYY7y8earvQNB1tDaY3sySxPy8HG5N2sqXWemcu2UduXY734wcxz29+yO3YM9WVZXXP/mJKx+YQ1WNjbcfu5q3nphOUEDzxLaiqIDnD+/H5nYjSRLnnzwSvYWBCg1tstramFJVVeps9U47m9uNlyzjazC0uKqWrduDQ6937DjcGhedP5W+YV7H1SLQHLX8vO4AgizjdmtMGD0QkwgTxgwk0CwhihJZaRms2Zv/P0nQsnz8Gt8dDvcREi3+y7L61qzfSV61E0HXCAoLZ0JiJObgcMb1C68v86A6WbR8B93uCVDMRIT5oKoagiDittbw6kc/U1zt6LpMwqhQ/3rbq91FbnHHdtrzo3oyMyYeh9Y2rdMkSfxSXMTte3cx2NePX8dPYWpYyyFBxaWV3DzrfR557VsGxEew6O27mX7R1GaNFSV2O3cmbefCbRtIra1BarCzjxncG18vU30L+C5AVY2V8vJqVHRKnU4ijCb8ZaUF4qshKbWo/lik65i8fDlz4oDjbhGk7D/E1vQyFElANJg4cWxfAHr1jiMxyh+XpqM5bSxdu+d/jpx1TSU1I5/kjIKjfg5nFlHn/OcquTlryvl1SxqSLIGuIyoysdFB/57JV+38sGoPmijhdqsMHtSHKF8ZkJk6ug+CpqLIEjt3HSCj3NHNg5E4Z9pwDKjo1Gcl/7ZsDWfd8l8+/GELFVZH5xNVQoP9QahXzbNyO96y6aG+iWTWWVlcVNCqPfqPiAcdCDOYWm2PtW1PCnc/N4+k5BxuuvgEnrz9IgJb0JpXFxfy4P7dpNdZeaJvInfE923UzHuEBhAc4EN2YRkiUpOnRrNRaTW55Q8UlVTiYzZR7XZT4HQw3j8QpYXnry2vpKDUiigKaKpKUEQwcccwKqOtWL4miWqnjkHWCIuKZvyA+jototGHk0YnsDZlKwZFYt2mJPJrTu5+e99xAlEUcVpruOHeV49WDXQNt+LFt+89xMSEoGMylr9uGimH03l57kK2ZFRiUCTcLhcRveKZ0L/Hv2b+89LS2ZJSjCKLOJ0CJ00Y2PgeJowZSIjXaircUF5cxC+bk5l5xqBuHc/UUyZz9Zo9fLjiMGazEaNBJjMzmwf/8zFzF0RxzYVTuebM0fhblI5p0NHhQRhlGXQ4kJbX4YEaJYlXBg9nnH8g9jZq0gZRZEFBDnfu3oGjmdjhzxau5ryZr5NTVMHcJ6bz5uzpzZKzU1V56fB+Ltq2EZeu8f2o8UeZTcxmIyaTgeZMRaqqkdAztM1H2ANpeXhbzBTW1VHjdDLI17/F6602O9UuFVGoD8kK9PfGx3x8HZedteUsWX8ISZFwqyrDhvQj1OvPMU4eMwAvuZ4gCnPyWJWUzf8aVFXF3cyPzrGJyz6ctJcbH/uAGx97j/NueYkzZrzBws3pKIqEqqpokpF7bzqHMO9/z+a5bNV2imrdCLqOb2Agk4bENP4tMjaGwTGBuN06Em6WrtxFd59lBMXMs7Nvqg9lVF04XG4kWcZkkMnOyuWJlz/jzBmvs3J3TgcJukcQXhYjoihyKD2/Y0kaDQgwGHl36EgSLF442xhfbRQlFuTncO+eI0m6praOB1+cx4ynP6NvTDhL5tzL1ec1n52VUVvD1ds38VTyAU4LCWPJ2MlMCQ2nI/GlowbFtelat1slr7AcPz8vkmurcegaw/z82+Hj0VEkiVYzlnWNw8lZbN6dyuakFA5mdW9z2v27D3IgvxpFFNBEhVMmDTpCW+w/sC/9I3xxazqC5uTnVbvQ/8dKbDqdbuxO15E/Dhd2Z9ubGXdWey4tLGbhb9tY+NsONuzNotalYTTI2B1OjBZvnnrgWqaf1P/fM+tOK79uPNzgF3HTP7E3/Xr8xXejWDhtbB80VUWRZfbuPcT+vO7vcGT28ef5J2ew4NlrmDAgAt3txu6sJ2qzUeHwwRSuve9NFm1Ka7+JIzzEn4hQfyprbGTml5JXWEZMVFiHB9vLy5v3hoziyh2bKHG5Wu1ZKDQ4Dhfk56IDrw0ZgeTWufbBOfy6YS+3XHIiT95xEX6+zTvRlhXmcd++JAocDp7pm8gdCX1Rmgl1s9sdOBzOJtO+NU0nwNfCtHED2/Ss2fklOFxuBElkV2UFAYqBAb5+rTSvNWARRSrREASBapsduwuMLSk5mp3Hn53LrwfLQXNzwqlT+eE/V3Yb+Sz5fTtWVcAoaASFhjN5SM8jTz4+QZwwtBfbc/ZiVCQ2b91LetlZxAeZ/icSVAxmLx6761x6+BqPmjtNlOkf7nPMojj0hjIFkig0bPki5595AjOvPJnhCaH/qrk/vO8g29JKUSQZpyoydfygo4yUU8YPIuCLDdQhUlNRxk/rDzL40tEci8JRJ06byOTJI1m/YTcffbeK33Zk4BYkDAYFe20VDz7/Bf3fv59+4V5tJ2iT0UDvXuHsT82norqOnfszOkXQAEMDAnln8Aiu37UVq6a1KbPOJEl8lZ+LKAi80HcQQ/v15KLTxnDFOc3XxXCqKq+mHOTltGQiTWa+GjGWk8NbLtZSVFpFWWVtk0WeHC43500dRnyvttnstu5JpWePYAC2VJQx2MePHuaWC7X4+PsSEmAiJ78ORRQoL6mkpNqBX1DLdVAkSawP0xHEhsVIN3XHKGL59gxkWUIQQXNYuXvWu/y9uGxpcSlGRUYUBSpKivl9ezrxpw74nyBoUTFy5sljiPFT/kETi0Z4VA+mDY5m5fok8mtcyKKAy63SKyH2X0fOAMvX7KLCoWMxgdEgs/Sn39m0au3fCms50WQFQdWRBJ3f1+7m3otHt5rB11WQFBNTThjDlMnD+eWXtTz85o8U1rpQFIWS/Fw+/2Un/5k+qe0EDTB6cDyLVuwAXWD11oNccGrna7qeEBrOy4lDuWPvTlRdb4yiaE2Tnp+Xg6brvHvnxS1en2O18sD+XfxQWMDZYeG8Mmg40ZbWQ9X2p+RQVWvHaJCP0p79vEzMuPKUNj/jxh2Huf2q0yh22jlQU8298X2bbAN2xAvw9mNgTAjbctIxGCSqy0vZciCXhEmtd6A4FsFSW7fsIaXYitxQkMdmtbJ+28GjTBiSJDbWnJBQ+fG3bdxw6gBk+J8wcTgcLuCfI2i3203CoAG8Ousili/5heueW4QmKCiizttzv6Fvz1AunfTvaTnlrC3nl03Jjb4hQYADhzJQ/xaNJQgCiiIhNNjpD+w/xPa0Mib2PsaRLKLC6WdOQ3Dbue75H9BFBVkSSNqbhsYkmtsvmvz9qIFxmI0KkiSyeXcqNbV1XTLGC6N68ly/hhjpttpzGjTpW3dubbZs56riQs7ZspblJUU83qc/80aObxM5A/y2cV+TtRIcTie3Xnoig/v1atN9MnOLKS6vIaFXOBtKinFqGie3yeYtcfrkQch6fSKBqLv45OsVWI+LJiwqP67YhZP6GG1N03C43GjoR/3nVlWcDck8siyxZ+9hDhVY8YBjmnYOcMpZp3DHuUPrTXeiCG4bs16aR1L2v6eB8b5d+9mTXYUi11OY0+XGrR0tmZqu4XC66lvyCQIOaw1L1x/4x8Y9eGAcXkYRXa9XsFxOZ4tc2KSC0y8+kl49gkjNKSEzv4yte1KZNn5wlwxwemwCdaqbJ5MPIIsSYhtJ+uuCXGpUN3OGjsRXMTTWOZiTdpinkg8SYjDw5fCxnN6j7W26isuqWLPt0FFVt2wOJ1NH9+fOa89o872Wrt5J37gIRFliSUEew/z86efbtnC5ySeOZfSXq9mUVY1Jkdm1fSdPvL+M5249telShJLIscg1qCzIY83eXBRZQtM0/AMDGd6neZNRVXk5O5PzEUWR2ooylqw7wMBLRh2D4nYCpmN1Zm2mup7JaDiuCuffO/Mydh7KZ8WhEkwGmfKifO56fj7fv3IzwRb5//2J5Zc1u6nTBMzo6ILEmBH98TMpzZbI3bUnjQq7G0US+H3NDh66cgJ+hq6XmfLycpyCkfCAphXEnUkp1Do0JEXCpev4B/ojtZegvSwmxg7tzaHMIkBn8e87uoygAWYm9MOuabyYehhEsU0kbZEklhYXcuuubbw/fDROTeOhfUnMz8vmtJAw/jtwGLHe7XPGLFy2hbziiiMWl93pYmB8BG/Ovg5LG+thO11uflq9iydnXkiFy8m68lJm9RnQqnnjDxh9Ann05jO4bPZ8nJqIURb5ZN5i0tKyuOXiKYzsF0WgnxeiAJrqpqykjGqbu76xQDcug7XrdpBZbsdgNGCzu7nowtN59rrmfQAlGclMuf41ylwgCzrL1uzi3otGtVjvtitKXNpqa/ly4Tp8DMLR9mGDmTNPHIq/Se62zUF1Ovj2p7WE+xiatA3Hx8cwcXDPY0phRt9AXnroMs69aw4FVh2j0cCe7bt45O2lzHnwnP/Xpqe6skKWbklFliVUt0porxjmvXo3gS0s1wcefIkP16RhViQyUjPYfKiIUwd3fTz4wm+W8PKPBznjxBFMGdWbPtGhmAwy9jorGzbs4vUFq0CSAR0VianjBrRoqmz2PZ06YRDzftyAJEqs2LyfguJyeoR2XVeI+/oMwK6qvJqeglGS2mRPtUgSy0qLuW7HZqpdLrZVVfBwfF8e6DsAk9Q+kausruWThWuQ/5JEYne46Bcbxsf/uYXI8LbbqNZtO4Dd4WbEwDjm5WdjEETO7tG+hrsTpk3hP7nFPDjnN5yijFEWWbd+Oxs2J9EjNIDQAB8kUUB1uygqrqC02o5BFnGo0C1RXLqLpev2owlifYcOsxdTx7Rc3ySkZ09GJoTy094ijIrE4YMp7EgvZ3xCIN0ZXlZbUc6jL37exJFfxRAQxrARid1K0G6blf+8saDJ92CzO7nqqguPOUEDxA4YyPO3nc4NL/6IJiqYjQrfL/qVgX2juOvc4f9vCXrnjv2kNfhFHHaNkcP7t0jOAKdMHMinq1NAkFHtNpas3tv1BK052bIni8LiMj79djnzvl+B2aQgCgKaplFndyLL9RE2NpuDoaNGcvmJ/dsXB/0Hxg/vQ2xkMDpQUFLFjyt2dPlEP9JvIHfExuNoRzC/SRRZVVZKsrWG+cPHMHvA4HaTM8DH364iJbsYWZbQdaizOxkzKJb5/72d3rHta9PzwTerOH3SECRFZl52BhdFRhNobG+ImcDV117MB49eTEyAmTq7s/F0UVBUxq4DGWzfl86uQzkUVtahahpOlxubo2PlYVtDXmoqq/fmIUsSLpebnr2iGR4X3PKHJBMnjkxAc7vREairrmTx6j3dFj2hNfzogNGoHPVjMtYXj+8Oc9Bfv1+jvgpkc2P4w07aLXbnv85DEzvEmeefxowzB+Gw19s6ZVReeGMBy5Py/pHxdEVHn+9/24FdE9A1DV0ycPK41qOFhg/rR4SvAZeqIUmwct0OirrY0WOrLGd/VgmaDoosI8siLrdabx9XNQyKjK5pWG0O+g0cwLuPXY6/SeoYQfv6eHHqhIG4XG5kWWL+Txups3VtLrsoCDzRfzD3xfdG1bQ2Ow6NooiqQ7mzY92yD6bmMuerFRgUGVXVcLpcXHXmWOa/cnuL/RCbwtbdKew6mMWVZ45jfXkJeXYbN8bEd3BGBM465xR++fABnrr+JAbHhmJURARdx61quNX6ZmsGWSIo0I+xw/ox+67LefbmU7p8HazbtJdql4CXWUFWZMaPHoh/G2wVJ0wcQqSfGaNBwddiYPO2A9S4tC63+RoN9Rphyz8GzK20NusoDG36/voxdFdnEVEU65+x4XuaLEcgyNx/52VMGxiOLEl4WcxI7joee2UBqcW1XW5uanU8nURlYT6bDxXi423GqMhEREYwfmDrtZ6DoqKZNDAKWZbwspioLClh4/68LjcrvTp7OjecOYLYMD8USUB11ytRDqcbQRCJigzjzpsuYvGbMxkQ1bqPStBb2OZ27U/nnNtewaXpuFxu3pl9LZedNaFbhO215AP8J/Uwchtt0qquowgCHwwZyWntMCc4nS6uuO8tVmw5hACEBnrz8I1nc+2FJ3RAE9W5/J638LYY+eC5W7h0y3p6e/vwbGLXdKxw2m1k5ZWSU1BKYaUNAD9fb6LC/AkLDiA8qPsSIMrKKqm2uxAFAV3XCQjww89iaEPLH5X84gpc+h9hgCIRYQH1NaS7sDhRQXElTlVvmXx1ECSRHiFd+/3oGkUlldhcWqvkr+s63t5eBPt1feNSh81OYXkNNLwjk8VMeEDTvSlrqmsoq7E3yrjbrRIcFICfV9c5N50OB4Vl1ejUj8dsNhPWxU2NnXY7BWV/PrPBYKRHiG+bTKRVFdVU1DkQBKE+jNbPh0Cf7kmmqqmuIaegjOz8Usqt9aaNuOgwEnqF4+9tbPN9WiRoTdO4/J43+X3zAURBJDEhgqUfPIjF3D0P9U7qYZ5NqY+xldpAli5dJ0wxsHjsROK929aw9KX3f+CpdxfjZTZy1pQhPHLLue02afyBtVv3c8V97/Dr3Aeoi/Tl1p1b+XnclFaTUzzwwAMPOlSL4+9HqOkXTEEUBWRFYk9yLguWbOi2wcxM6Muz/RIRGzTk1qAIAvkOO7MO7MHVhlofC5dt4cUPf2LSiD58/sItfPz8rR0mZ4fTxTPvLmLqmAEMTIzlhUP7uaFXnIecPfDAg2ND0FDfdWTs4Hicznpb9JtfLKeguLzbBnRDbG9eHTgUSRDaRNImSWJ5aTFf52S2eN2OvaksXL6FOU9ez49z7ue0KcPojHHys4Wr2X04h8duOoefi/OxuVVuiEnwSJQHHnhw7AhaUWRmXHESolCfzptdWM7LHy7p1kFdFh3DK4lDkNqoSUuCwJvpKZQ5HM3aAYP8vfnoP7dyyRnjMBg6l5KbmlXAc+/9yLXnTKRXnyheP3yQ2f0SMUmSR6I88MCDY0fQAKdMHMLJ4xJxOFyYDAbm/7yZX9bs7HaSfrrvwPoGtq2aOkRS66x8l5fVbKxqTHQ4xi7I9nK53Dz08gLMRgOzbj6X/yYfYFJQCOODQz3S5IEHHhx7gpYkiQdvPBsfixEdHVXTmfX6t+QVlnXr4G6IS+DmXrHNFu//uxb9bV5Ok9dqmkZqVgHJ6Xmdbu75xmdL+XX9Xp6/40LSDBp7Kyq4r88AjyR54IEH/wxBAwxNjOWmi0/A7nChyBIZeWXc98IXDVW8ug8P901kpH8AjlacgIoocrC2hr1VR/ZR3HMokwtmvsLJ05/n5Otf4KxbXmLjjkMdGsuva3by3Hs/csUZYzjp1FG8fHAfT/QfhJcseyTJAw88+OcIGuCua09nZGIvHE43JqPCsg37ePbd77t1gF6ywpN9EzE39CykhdKbNk1jXVnJX4ohVXLTrA9Zvf0wNqcbh1tl675Mbpz1AalZhe0aR9KBDGY+/TnxUaG8eN/lvJxykIsiohnQjo4pHnjggQfdRtA+3hZevO9yfL2MqJqGyWhgztermPPFr906yHHBoVwaEYW9FVOHIAjsr65q/P+fV+3icGYhFpMRURAQBQGzUSGvpIrvft3c5u9Pzy7kxlnvY7U7eO/x61jpqiZQkrkwqpdHgjzwwIPjg6ABRgyK54mZ5+P+S+3fp+f8wLxFa7p1oHcm9CXMaGwxqkMCMmx1jdek55Y0GUoniSL5hW0LFUzPKuTqB98lJauYNx+6EhJCOFhezu29+3mkxwMPPDi+CBrgugtO5JZLTsTucNZXagIeeuVrPl+4utsG2tPizfTomBabzwqCgM3txt7Q6DYxIbLJepxuVSO2Z+tRFykZ+Vzz0Bx2H8rh6dvOY9wpw1mWm8s9vQcgC6JHejzwwIPjj6AR4Ik7LuLCk0dQZ3MgiSKqrvPgK1/z5qc/d9tgr+4ZS4TR1KIWrep6499PnzKU0QNjqK2zo6oaakMlqf5x4Vxy+rgWv2tLUjKX3vMWOw5m8cD007nqmlNYmJ3JbfF98Fb+/7StL7HXcbi2hiKH498vzZpKurWGXLu9S+eu3OnyMIUHnUa+zUqq1YpT07umFkdrqK6tY8aTH/Hzmj2YTQY0XcftcnP9BZN58s6LuqVmx+z9u3knMw1zE0khLl2jj5cPv084obEEaXZ+Cc/NWcymXSmomsaIxBgeu+18+sY1X2Dp65828Mhr31BaUcsD009nxs1nsTgvm7MiogkzmbvtBRbXlvN0ahbPDx6GTycV9JK6Kl5KPkS2w4UmCAiayoiQaB6Kj233vWrsNbydlcd9ffrx15r481IP0Ds0hrG+HU9vX5uXxqo6eKJ3fKeet7SuiicP7KNIA13TGB0SxYMdeFaAKnst/00+SIrNgSoIKAjcmJDI1EC/Do/P7qzlgf2HeChxGFGGjic0bSvOZptNZEavqE7N16q8NEokPy4JD273Z3eX5DIrNQ2TJKPpOl4GM/8dOIxQRWxnH0Ub9+/fz219BtPX/GeOwp7SXDbVCdzSs3011TW3g8f27uKg093Q1Li+s3m8Xygv9evbbm30h6zDvJdfhJck4dY1YryDeGnAABShva3IXLxxaC8bauoQgQCjN88PHExgG8rQdio+zNfbwpynbmTG4x+xZO1uLCYDiqLwwXdrSMkq5L8PXkF8TESXkthlUb34PDcLp64fNeG6DkGKgvEv5N0zIoT3nrmJ8soaVE0nJLD5okpVNVZeeO8H3vt2NSICz915AddffSorC/M5N7InwUYT3YmNJYWk1VSSVF3LJP+OVwGrc1h5YE8SkyITeKJHON6yhNXloNjpbhTb9kDVVFKstUdZi3KttQS71Y4/sK6yuqSY/U6REncsIZ2om/x5RgqDwuJ4K7oHLreLog5qvS63ncf2JpEYFsNDiT3wliRqXc76xgWdwM7SIlJrqthSUUlUWMcbllY6bGTYOm9eK7XXkS93TJ6L7bVE+QTzQGyvhrLBYpvIpokUX3aUFvCSaOGDQQMa13O1w0ZmB55RlAzc3ncQDl1nUeYhXOZgLgkLxiDJHTIVZFtrmBzWi0sa3pdBkpE7UB1ia1EOKW4Dn48ahkXQybXV4dXGIuWdftM+XmbmPH0DV54xBpvdCeiYTQbWbE/mvNtf55ufN3Rpy4/+vn6M9gtosjiSquvEe3kjNEFBgf4+LZLz+m0HuPD213jji98I8DHz3pPXMf3qU9lWWsyU0PBuJ2dddbKl2s498XGsLynq1L0WZ6cSF9yLG6Ij8W6oReylGIn18upwJ3C5KWerIHRKgAprynEY/DgvyIf15Z1paKpR4HQxPigIATDICtGWjmn1K/Mz8fEJ57aeUXg3bPTeigHfTsW6q6wsq+LuPn1JKivqVJsyURCafBcduY/UwfsICAQbzcR5eRPn5U2MxdIh4nJrOoP8gzE4KvmppKLzzygIRFq8iPPyJtxoJNxkIc7LmyiTqcNzFGG2ND5nlMnUofWTa6sjMSAIiyiAIBJl8cZ4rAgawNvLzBuzr+O+605H0zTcqorJqFBUXsPMZz/nplnvk5FdSFcV+T8jLKLJbg0CMNK/fe2V8grLePjlL7ns3nfYuDuNUYkxfPPaHZx26ijSKisZExza2KS2O5FZXYZdMnJCaDjFtZVUqHqHO05srbJyfkQExzs2lhbTyzeIyUGBbPtL/HpHXCkT/P34LDMNq6Z3qhnp5ooqTu/Rta2QKuuqyVMFTggNR3VayXC48aChYLdo4M74BL7JTO64zLfQ2eV4wKjAELYUZpPagYYnXRaKIMsys2ZewJwnriPY3xu7w4UsiciyzHe/7eDMW//La5/8TGVV57s4TA4JwV9RjujAoqEToCiMC2ybTa20vJo3PvuZ0296kbfmr8DhdjPj0hNZ9Pa99B0QQ1ldHYMCgzBLxyZLcG1JMUMDQzDIRnqbRLZV1XTwiO7AikwP43HuyNTdbK6sZUJgIFG+gTgdNRR0ovPKub36EC85uHHHFlZ3VBvX3ZS5dMK7uEP3ltIi4nyDMIoyw30tbCgr/39NqwZR5Je8dK7esZkrtm3k3v0HsHWQC926RnxAKCf7GXkvK/u4ek5FEHgvdR9X79jMZds28mJaZofu08s/jJsiQ3l091bez86lPdtzl7PPBaeOZWDvaGa9/g2/bz6ALMuYjQpllVaenrOY737dwk0Xn8gFp47G18erYw9s8aa3lzc7qioxiPV7jFPTmBoYQoxXy7bbzNxivv1lE1//soXkrCJ0HYb368nDN5/NmSeOAKDG6aRnGxsAdJV5Y4/VwQNxIQBMDQlmXnEhpwT6dsSshw6IfzuM6ZrKYauVBG/fDh1HuxoFNRW4FAuJlvqNZKiXgdVl5VzeAadVfbslmdv6DmVieSGvp+4lL6ovV0YcDwWsNDZV1HBh7zgATgwN4+mMAq6ICOX/a+1Dt64zPCiMGT2jAR2DpGDssEzp2HW4PLYPt+zcyeGICAyCcNw856k9enFOSCC6ruNr6LiZc1JELAMCgnkr5SCzrLU83e9Ih/sxI2iAPnGRfPnKHXzy/SremLec/OJKjA19ypKzi7n3pQW8/+0qLjtjLOedPIqeESHt09ZFkcG+/myt/IvdCoEro3s12baqqtrK5qQUvl++ldXbDlFYWo2u60SG+nP9BZO5+dJp+Pv9Sew+BsMxFYScmnJ21dTyQ14Gkq5jc9axsbSScrU3ge1s1WSQDZhwU+pyE/gX7d/tdvBGSjIvDB2Jn9Chw+hR9je9U1plIWm2Oj7MSgMdUq1WCusKO0zQf2BQYDhvDrYwY89+pgQHtS9iQpAJUgQKHU76mLrmBFJjq2ZTVRUBRTlsEeo9+rsqSki3u+ht+v8Trvl380GYyYuhXVTmQNfAoFi4KboH76SmcnmwqSEK4x83wBDj5dNlzxlk9uHJwSN5ImkrS0srOC8k4J8h6D/qSN982cmcMnEIb37+K9//to1qqwOjQUaRJVKyi3ni7UW8u2AF08YO4NxpIxg7tA++Pm1z7gzy9WskDIemMdY/gGmhf9oOnS43v61LYtmGvWzclUJWQTkOZ/3hIjzYl4tPHcUNF51IXM/wf1wQ1pYUEe3jT6XT0UgUPWSdDRVVnB3cTuEQFYZ6m/m1qJg+vSKOcOx01LlklhVcbic1GgRJf2qGhS4XoR2pra2rrK2opr+PP2UNjX8DvXw5XFZJjlMl2tA53dLL5Eu0IpDncBJlMLfL/TXW349fCwuY7Nc1zRe2lhbhZ/HF7nbyR3R2H7OB1aVl9I4K77Af5t+I8RExrCjdwTcFNQT5hB4vVnK6OvVkjL8vh6xW+CcJ+g/ERIXy6qPXcM15E5m7YAW/rt9DVa0dgyJjNhmoqKljwdItfLtsG7GRwYwf1pvJo/oxbEAsUeFByM10RO5l8UJuyGJUBIF74/seEV6XkVPMjbM/wmp3IggCkijSp1co500byRVnjz8uiBlAVR2sqahl9pCxJBj/HP9OHxOfFhZwVrB/uz3HF/eK5/bdSXxrlDgrNASzKGJXXdjUjoXEGQ0Whppl5mZkcH9cDEZBZ2VeGhWimf5e7T/25VWXUoaJz/onHvH7d13bWV5Sxg2Roe1eRlm1tQSaLfhIEqkVhWS4INZsbPfYpkbGsGTXdt7LNnFVZA+8JAmry4kqiO2P5NBVfi0u484+w5jo++dGkVdZyOz0Aq6LDG93TK2OTqnDRkadFdCRBYkIs7nd5hLtLwld7Setv46hfvOPMJs7ZJpwHzEGiVvjEjht4zqmeYfQWS1f7aSTUNN1Cmx19c+p68iSTKTJ1G7HXYnNiirKhBuN1Djq+KW0grPjov4ZG3RzGDogjrnPxLHvcBZfLtnA0jW7ySmqQBDAoMgIokBGfhnJ2cV8/uNGAnwtxEWFkJgQSe/YHlx+5ngC/mKGCDMa8ZIkytwuboyOYWrYkZ73vclZVFvthAX5MmpQLBeePIqTJgwm0N+H4wllNis9/YKJNR65xAYEhhJcnkGNpuMrtk/w/cy+vJA4kP+mJPNdVgqaKGLQNXp6B2MROhZYdWufgTx/cC9XbctDEMBLMvHogEGYOnC/dGsdU8KOjjI5KTySJRXWDsXT/pqbxsqqWnRRQFfh5t6JhHYgNleRTTw3aAgvJx/ihoJMNEFEhg4lqtQ5bXibfRnqc6QWH+EbSG9TMUUuN1GG9i3BUKMXebVpPLCvCk3XCDb78crAQfi0U0aCTBZ0qWOmvBCTFzm56Ty4rxJd15FlEy8NHEpPo9zOk4BEgpc3f7XihXgH8mBCbwrlzpkZQ8xeqJ109vb08ua9/Cx2lOai6hohXgG8ljiw3WsopbKYt7Jy0UURl6YyMbQXJ7XRv9SpTMLOoLi0kuXr9/DT6l3sOJBJWaW1IRpERBJFdL2+Zoaqqrjcbr59/U5OnzLsTw25ppopG1bRy2xh0ZhJBP8t1vHzhauotjo4bdIQEmJ6wPEbaNSihtyRxJK/osBmpUrVCFSMhHZBdEJeXS02XSDW4oUkdM8z04nkizK3SqTZC2+p8wFKxfY6yl0qIUYTQR0w5XTnu9X/Elr6Tx///50Gl659TqvLQZ7dgZ/BRFg71uE/RtD8LbJi487DrN12iF2HsskrrsBmd6JpOqIoYHe6eO7Oi7h7+pl/7krVVVyybQMfDBvNyMBgPPDAAw/+bTguCPqvqLXayMgt5mBaHofT80nJKiKnsIwTR/fn8TsubrwuraaaLGstU8MjPG/RAw888BA0/5gjTcXtVo9o+qr/DxytPPDAAw9B655p8MADDzzgX1IP2gMPPPDAAw9Be+CBBx54CNoDDzzwwAMPQXvggQceeOAhaA888MCD/7f4P2IgAfxy8STwAAAAAElFTkSuQmCC';
-document.getElementById('logoHdr').src=LOGO;
-/* ================= CONFIGURACIÓN DE INSTALACIÓN ================= */
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbwb9z6uQGtN-XYaNOmmrmjL5Qh3eM6Wx7Ed4Hrq6MtY-7Oz2LP9jJWLymfO6OSFqqSIWQ/exec';
-const PINS = {
-  'ROPA1':'admin',   // Acceso general: Gerencia, Supervisión de Enfermería y Coordinación de Quirófano/CEyE
-  'LAV1':'lav'       // Lavandería: ropa sucia, lavado, almacén central, resurtido y bajas
-};
-const ROL_NOMBRE = {admin:'Acceso general',lav:'Lavandería'};
-const LS_KEY = 'ropa_cmga_v3';
-const LS_QUEUE = 'ropa_cmga_queue_v3';
-const COLS = ['sucia','lavados','surtidos','conteos','bajas','altas','esteril','usos'];
-const FOLIO = {sucia:'SUC',lavados:'LAV',surtidos:'SUR',conteos:'CON',bajas:'BAJ',altas:'ALT',esteril:'EST',usos:'USO'};
 
-/* ================= DATOS POR DEFECTO (RT-ENF-ROP-001 y RT-ENF-ROP-002) ================= */
+<script>
+/* ================= CONFIGURACIÓN DE INSTALACIÓN ================= */
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbwb9z6uQGtN-XYaNOmmrmjL5Qh3eM6Wx7Ed4Hrq6MtY-7Oz2LP9jJWLymfO6OSFqqSIWQ/exec';  // Apps Script (Control de Ropa CMGA)
+const PINS = {             // PIN → perfil
+  'ROPA1':'admin',          // Acceso general (Gerencia y Supervisión de Enfermería)
+  'VIG1':'vig'              // Vigilancia: solo registrar entregas de sucia y recepciones de limpia, con foto de la nota
+};
+const ROL_NOMBRE = {admin:'Acceso general',vig:'Vigilancia'};
+const LS_KEY = 'ropa_cmga_v2';
+const LS_QUEUE = 'ropa_cmga_queue_v2';
+
+/* ================= DATOS POR DEFECTO ================= */
 const PRENDAS_DEF = [
-  ['r01','Sábana regular','piso',447,132.8],['r02','Sábana clínica','piso',213,48.9],['r03','Edredón','piso',125,32],
-  ['r04','Funda de almohada','piso',134,38.9],['r05','Cobertor','piso',164,44],['r06','Toalla','piso',104,23],
-  ['r07','Bata de paciente','piso',226,61.4],['r08','Bata pediátrica','piso',10,0],['r09','Bata bariátrica','piso',10,0],
-  ['q01','Campo sencillo 90×90','qx',541,112.7],['q02','Campo doble 90×90','qx',38,7],
-  ['q03','Campo extragrande sencillo 120×120','qx',49,7],['q04','Campo extragrande doble 120×120','qx',49,7],
-  ['q05','Campo hendido','qx',24,2.1],['q06','Funda de mayo','qx',50,9.1],['q07','Sábana de pies','qx',50,9.1],
-  ['q08','Sábana hendida','qx',27,7],['q09','Sábana de riñón','qx',27,7],['q10','Bata de cirujano','qx',117,28],
-  ['q11','Toalla para cirujano','qx',117,28],['q12','Piernera','qx',21,2.1]
-].map(([id,nombre,grupo,meta,consumo])=>({id,nombre,grupo,meta,consumo,activo:true}));
+  ['r01','Sábana regular','Ropa de cama'],['r02','Sábana clínica','Ropa de cama'],['r03','Edredón','Ropa de cama'],
+  ['r04','Funda de almohada','Ropa de cama'],['r05','Cobertor','Ropa de cama'],
+  ['r06','Toalla','Ropa de paciente'],['r07','Bata de paciente','Ropa de paciente'],
+  ['r08','Bata pediátrica','Ropa de paciente'],['r09','Bata bariátrica','Ropa de paciente']
+].map(([id,nombre,grupo])=>({id,nombre,grupo,activo:true}));
 const SERV_DEF = [
-  {id:'hosp',nombre:'Hospitalización'},{id:'uci',nombre:'UCI'},{id:'ucim',nombre:'UCIM'},
-  {id:'qxrec',nombre:'Quirófano / Recuperación'},{id:'urgendo',nombre:'Urgencias / Endoscopia'},{id:'img',nombre:'Imagen'}
+  {id:'hosp',nombre:'Hospitalización'},
+  {id:'uci',nombre:'UCI'},
+  {id:'ucim',nombre:'UCIM'},
+  {id:'qxrec',nombre:'Quirófano / Recuperación'},
+  {id:'urgendo',nombre:'Urgencias / Endoscopia'},
+  {id:'img',nombre:'Imagen'},
+  {id:'roperia',nombre:'Ropería (Paliativos)'}
 ].map(s=>({...s,activo:true}));
+/* Stock autorizado por la Gerencia de Enfermería (noviembre 2026) */
 const STOCK_DEF = {
   hosp:{r01:36,r02:36,r03:18,r04:18,r05:18,r06:18,r07:20},
   uci:{r01:4,r02:4,r03:2,r04:2,r05:2,r06:4,r07:3},
   ucim:{r01:4,r02:4,r03:2,r04:2,r05:2,r06:4,r07:3},
   qxrec:{r01:10,r05:4,r07:4},
   urgendo:{r01:10,r02:10,r03:5,r05:5,r07:10},
-  img:{r01:15,r02:15,r05:5,r07:20}
+  img:{r01:15,r02:15,r05:5,r07:20},
+  roperia:{}
 };
-const BULTOS_DEF = [
-  ['b01','General',10,{q08:1,q01:4,q07:1,q09:1,q06:1,q03:1,q04:1}],
-  ['b02','3 batas',10,{q10:3,q11:3,q01:2}],
-  ['b03','1 bata',15,{q10:1,q11:1,q01:2}],
-  ['b04','Sábana de pies',7,{q07:1,q01:2}],
-  ['b05','Funda de mayo',7,{q06:1,q01:2}],
-  ['b06','Piernera',7,{q12:2,q01:2}],
-  ['b07','Hendido',7,{q05:1,q01:2}],
-  ['b08','4 campos',10,{q01:6}],
-  ['b09','2 campos',10,{q01:4}],
-  ['b10','Envoltura de instrumental',0,{q01:1,q02:1}]
-].map(([id,nombre,stock,comp])=>({id,nombre,stock,comp,activo:true}));
-const PARAMS_DEF = {horasAlerta:24,metaCobertura:90,metaBajasMes:1,metaAlmacen:100};
-const MOTIVOS = ['Mancha que no sale','Rota / desgarrada','Desgaste','Extraviada','Contaminación no recuperable','Otro'];
-const UBIC_FIJAS = {almacen:'Almacén central (lavandería)',lav:'Lavandería: ropa en proceso',crudo:'CEyE: ropa quirúrgica en crudo',anaquel:'CEyE: bultos estériles en anaquel',qxropa:'Quirófano (ropa quirúrgica)'};
-function configDefault(){
-  const dot={};Object.keys(STOCK_DEF).forEach(s=>dot[s]={...STOCK_DEF[s]});
-  return {version:3,prendas:PRENDAS_DEF.map(p=>({...p})),servicios:SERV_DEF.map(s=>({...s})),stock:dot,bultos:BULTOS_DEF.map(b=>({...b,comp:{...b.comp}})),params:{...PARAMS_DEF}};
-}
+function dotacionDefault(){const d={};Object.keys(STOCK_DEF).forEach(s=>{d[s]={};Object.keys(STOCK_DEF[s]).forEach(p=>d[s][p]={stock:STOCK_DEF[s][p]});});return d;}
+const PARAMS_DEF = {diasAlerta:3,diasEscala:7,metaDevolucion:98,metaRechazo:3,metaFaltantes:0.5,metaCobertura:90,metaSuficiencia:100,factorCirculacion:5,proveedor:''};
+const MOTIVOS = ['Manchada','Rota / costura abierta','Húmeda','Mal olor','Sucia / pelusa','Prenda ajena','Otro'];
+function configDefault(){return {prendas:PRENDAS_DEF.map(p=>({...p})),servicios:SERV_DEF.map(s=>({...s})),dotacion:dotacionDefault(),params:{...PARAMS_DEF}};}
 
 /* ================= ESTADO ================= */
 let DB = cargarLocal();
 let QUEUE = JSON.parse(localStorage.getItem(LS_QUEUE)||'[]');
-let ROL = sessionStorage.getItem('ropa_rol3')||'';
-const puede=acc=>ROL==='admin'||(acc==='lav'&&ROL==='lav');
-function vacio(){const o={};COLS.forEach(c=>o[c]=[]);return o;}
+let ROL = sessionStorage.getItem('ropa_rol')||'';
+const esAdmin=()=>ROL==='admin';
+const puede=acc=>ROL==='admin'||(acc!=='admin'&&ROL===acc);
+
 function cargarLocal(){
-  let d=null;try{d=JSON.parse(localStorage.getItem(LS_KEY)||'null');}catch(e){}
-  d=d||{};const o=vacio();COLS.forEach(c=>o[c]=d[c]||[]);o.config=normConfig(d.config);return o;
+  let d=null; try{d=JSON.parse(localStorage.getItem(LS_KEY)||'null');}catch(e){}
+  d=d||{};
+  return {config:normConfig(d.config),envios:d.envios||[],recepciones:d.recepciones||[],ajustes:d.ajustes||[],conteos:d.conteos||[],surtidos:d.surtidos||[]};
 }
 function normConfig(c){
-  const b=configDefault();if(!c||c.version!==3)return b;
-  const prendas=c.prendas&&c.prendas.length?c.prendas.slice():b.prendas;
-  b.prendas.forEach(p=>{if(!prendas.some(x=>x.id===p.id))prendas.push({...p});});
-  return {version:3,prendas,servicios:c.servicios&&c.servicios.length?c.servicios:b.servicios,stock:c.stock||b.stock,
-    bultos:c.bultos&&c.bultos.length?c.bultos:b.bultos,params:{...b.params,...(c.params||{})}};
+  const base=configDefault(); if(!c) return base;
+  const prendas=c.prendas&&c.prendas.length?c.prendas.slice():base.prendas;
+  base.prendas.forEach(p=>{if(!prendas.some(x=>x.id===p.id))prendas.push({...p});}); // agrega prendas nuevas del catálogo base
+  return {prendas, servicios:c.servicios&&c.servicios.length?c.servicios:base.servicios,
+          dotacion:c.dotacion||base.dotacion, params:{...base.params,...(c.params||{})}};
 }
-function guardarLocal(){try{localStorage.setItem(LS_KEY,JSON.stringify(DB));localStorage.setItem(LS_QUEUE,JSON.stringify(QUEUE));}catch(e){toast('No se pudo guardar en este equipo',4000);}}
+function guardarLocal(){try{localStorage.setItem(LS_KEY,JSON.stringify(DB));localStorage.setItem(LS_QUEUE,JSON.stringify(QUEUE));}catch(e){toast('Memoria del navegador llena: conéctese a internet para subir las fotos pendientes',5000);}}
 
 /* ================= UTILIDADES ================= */
 const $=id=>document.getElementById(id);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const num=v=>{const n=Number(v);return isFinite(n)?n:0;};
-const fmt=(n,d=0)=>num(n).toLocaleString('es-MX',{maximumFractionDigits:d,minimumFractionDigits:d});
-const fpct=v=>v===null||v===undefined||!isFinite(v)?'—':v.toFixed(1)+' %';
-const MESES=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+const fmt=n=>num(n).toLocaleString('es-MX');
+const pct=(a,b,d=1)=>b>0?(a/b*100):null;
+const fpct=v=>v===null||v===undefined?'—':v.toFixed(1)+' %';
 function hoy(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 function ahora(){const d=new Date();return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');}
-const mesDe=f=>String(f||'').slice(0,7);
-function nombreMes(m){const [y,mm]=m.split('-');return MESES[Number(mm)-1]+' '+y;}
+function mesDe(f){return String(f||'').slice(0,7);}
+function diasEntre(a,b){return Math.round((Date.parse(b+'T12:00:00')-Date.parse(a+'T12:00:00'))/864e5);}
+function finDeMes(m){const [y,mm]=m.split('-').map(Number);const d=new Date(y,mm,0).getDate();return m+'-'+String(d).padStart(2,'0');}
+function diasDelMes(m){return Number(finDeMes(m).slice(8));}
 function fFecha(f){if(!f)return '';const [y,m,d]=f.split('-');return d+'/'+m+'/'+y;}
-function diasDelMes(m){const [y,mm]=m.split('-').map(Number);return new Date(y,mm,0).getDate();}
-function diasTranscurridos(m){return m===mesDe(hoy())?Number(hoy().slice(8)):diasDelMes(m);}
-/* días con ropa sucia registrada: evita que un mes que arrancó a la mitad baje el promedio */
-function diasOperacion(m){return Math.max(1,new Set(DB.sucia.filter(r=>mesDe(r.fecha)===m).map(r=>r.fecha)).size);}
+const MESES=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+function nombreMes(m){const [y,mm]=m.split('-');return MESES[Number(mm)-1]+' '+y;}
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7);}
 function toast(t,ms=2600){const e=$('toast');e.textContent=t;e.style.display='block';clearTimeout(toast._t);toast._t=setTimeout(()=>e.style.display='none',ms);}
-const tsDe=r=>(r.fecha||'')+'T'+(r.hora||'00:00');
-const horasDesde=ts=>(Date.now()-Date.parse(ts+':00'))/36e5;
-const prendas=g=>DB.config.prendas.filter(p=>p.activo!==false&&(!g||p.grupo===g));
-const prenda=id=>DB.config.prendas.find(p=>p.id===id)||{id,nombre:id,grupo:'piso'};
-const servicios=()=>DB.config.servicios.filter(s=>s.activo!==false);
-const bultos=()=>DB.config.bultos.filter(b=>b.activo!==false);
-const bulto=id=>DB.config.bultos.find(b=>b.id===id)||{id,nombre:id,comp:{},stock:0};
-function ubicNombre(u){if(UBIC_FIJAS[u])return UBIC_FIJAS[u];const s=DB.config.servicios.find(x=>x.id===u);return s?s.nombre:u;}
-const GRUPO_NOMBRE={piso:'Ropa de cama y paciente',qx:'Ropa quirúrgica'};
-function sumItems(it){let t=0;Object.values(it||{}).forEach(v=>t+=typeof v==='object'?num(v.e):num(v));return t;}
-function siguienteFolio(col,fecha){
-  const pref=FOLIO[col]+'-'+String(fecha||hoy()).slice(0,7).replace('-','')+'-';
-  const n=DB[col].filter(r=>String(r.folio||'').startsWith(pref)).map(r=>num(String(r.folio).slice(pref.length)));
-  return pref+String((n.length?Math.max(...n):0)+1).padStart(3,'0');
+function prendasActivas(){return DB.config.prendas.filter(p=>p.activo!==false);}
+function prenda(id){return DB.config.prendas.find(p=>p.id===id)||{id,nombre:id,grupo:'Otra'};}
+function servicio(id){return DB.config.servicios.find(s=>s.id===id)||{id,nombre:id,unidades:0,factor:1};}
+function serviciosActivos(){return DB.config.servicios.filter(s=>s.activo!==false);}
+function serviciosStock(){return serviciosActivos().filter(s=>s.id!=='roperia');}
+function grupos(lista){const g={};lista.forEach(p=>{(g[p.grupo]=g[p.grupo]||[]).push(p);});return g;}
+function siguienteFolio(col,pref,fecha){
+  const y=(fecha||hoy()).slice(0,4);let max=0;
+  DB[col].forEach(r=>{const m=String(r.folio||'').match(new RegExp('^'+pref+'-'+y+'-(\\d+)$'));if(m)max=Math.max(max,Number(m[1]));});
+  return pref+'-'+y+'-'+String(max+1).padStart(4,'0');
 }
-function resumen(items,fnNombre){return Object.keys(items||{}).map(k=>{const v=items[k];const n=typeof v==='object'?num(v.e):num(v);return n?fnNombre(k)+': '+n:'';}).filter(Boolean).join(' · ');}
+function totalEnvio(e){let t=0;Object.values(e.items||{}).forEach(v=>t+=num(v.c)+num(v.x));return t;}
+function totalRec(r,k){let t=0;Object.values(r.items||{}).forEach(v=>t+=num(v[k]));return t;}
+/** Diferencia contra la nota del proveedor. Si se capturó la nota, se compara cada prenda (nota en blanco = 0). */
+function contadoDe(r,v){return r.tipo==='Envío'?num(v.c)+num(v.x):num(v.a)+num(v.r);}
+function tieneNota(r){return Object.values(r.items||{}).some(v=>v.n!==undefined);}
+function difNotaRec(r){if(!tieneNota(r))return 0;let d=0;Object.values(r.items||{}).forEach(v=>{d+=Math.abs(num(v.n)-contadoDe(r,v));});return d;}
+function pillNota(r){if(!tieneNota(r))return '<span class="pill warn">Sin nota</span>';const d=difNotaRec(r);return d?`<span class="pill bad">No coincide (${fmt(d)})</span>`:'<span class="pill ok">Coincide</span>';}
+function prendasDifNota(r){return Object.keys(r.items||{}).filter(p=>num(r.items[p].n)!==contadoDe(r,r.items[p])).map(p=>prenda(p).nombre+' (nota '+num(r.items[p].n)+', contado '+contadoDe(r,r.items[p])+')');}
+/** Revisión al guardar: pide nota y exige observación si no coincide. */
+/** Texto automático de la diferencia contra la nota. */
+function textoDifNota(rec){
+  if(!tieneNota(rec))return 'Sin nota capturada';
+  const L=Object.keys(rec.items||{}).filter(p=>num(rec.items[p].n)!==contadoDe(rec,rec.items[p])).map(p=>{const n=num(rec.items[p].n),c=contadoDe(rec,rec.items[p]),d=c-n;return prenda(p).nombre+': nota '+n+', contado '+c+' ('+(d>0?'+':'')+d+')';});
+  const d=difNotaRec(rec);return L.length?'No coincide en '+fmt(d)+(d===1?' pieza. ':' piezas. ')+L.join('; ')+'.':'Coincide con la nota';
+}
+function actualizarDifNota(){
+  const box=$('difNotaBox');if(!box)return;const items=leerGrid();
+  const rec={tipo:box.dataset.tipo,items};const t=textoDifNota(rec);
+  box.textContent=t;box.className=!tieneNota(rec)?'note':difNotaRec(rec)?'alert':'note';
+}
+function htmlDifNota(tipo){return `<div style="margin-top:8px"><div class="muted">Diferencia contra la nota (se calcula sola)</div><div id="difNotaBox" data-tipo="${tipo}" class="note">Sin nota capturada</div></div>`;}
+/** Foto de la nota del proveedor */
+let FOTO_MODAL=null;
+function htmlFoto(rec){
+  const prevF=rec&&rec.fotoNota;
+  if(!GAS_URL)return `<div class="muted" style="margin-top:8px">📷 La foto de la nota se activa al conectar la app con Google Sheets.</div>`;
+  return `<div class="row" style="margin-top:10px;align-items:flex-start">
+    <label class="btn sec" style="cursor:pointer">📷 ${prevF?'Cambiar foto de la nota':'Tomar foto de la nota'}<input type="file" accept="image/*" capture="environment" style="display:none" onchange="onFoto(this)"></label>
+    <div id="fotoPrev" class="muted">${prevF&&prevF.url?`Foto guardada: <a href="${esc(prevF.url)}" target="_blank">ver</a>`:prevF&&prevF.pendiente?'Foto pendiente de subir':'Sin foto'}</div></div>`;
+}
+function onFoto(inp){
+  const f=inp.files&&inp.files[0];if(!f)return;const rd=new FileReader();
+  rd.onload=()=>{const img=new Image();img.onload=()=>{const M=1280;let w=img.width,hh=img.height;const k=Math.min(1,M/Math.max(w,hh));w=Math.round(w*k);hh=Math.round(hh*k);
+    const cv=document.createElement('canvas');cv.width=w;cv.height=hh;cv.getContext('2d').drawImage(img,0,0,w,hh);const url=cv.toDataURL('image/jpeg',0.7);
+    FOTO_MODAL={base64:url.split(',')[1],mime:'image/jpeg',nombre:'nota_'+hoy()+'_'+ahora().replace(':','')+'.jpg'};
+    $('fotoPrev').innerHTML=`<img src="${url}" style="max-height:120px;border:1px solid var(--line);border-radius:6px"><div>Se subirá al guardar (${Math.round(FOTO_MODAL.base64.length*0.75/1024)} KB)</div>`;};img.src=rd.result;};
+  rd.readAsDataURL(f);
+}
+function fotoLink(r){const f=r.fotoNota;if(!f)return '';return f.url?` <a href="${esc(f.url)}" target="_blank" title="Ver foto de la nota">📷</a>`:' <span title="Foto pendiente de subir">📷⏳</span>';}
+function fotoPrint(r){const f=r.fotoNota;if(!f||!f.id)return f&&f.pendiente?'<p class="muted">Foto de la nota pendiente de subir.</p>':'';
+  return `<h2>Foto de la nota del proveedor</h2><img src="https://drive.google.com/thumbnail?id=${encodeURIComponent(f.id)}&sz=w1000" style="max-width:100%;max-height:430px;border:1px solid #C9D1DB"><p style="font-size:10px">${esc(f.url)}</p>`;}
+function validarNota(rec,quien,prev){
+  rec.detalleNota=textoDifNota(rec);
+  if(FOTO_MODAL)rec.fotoNota={pendiente:true};else if(prev&&prev.fotoNota)rec.fotoNota=prev.fotoNota;
+  if(!tieneNota(rec)){rec.coincideNota=null;rec.difNota=0;return confirm('No capturó lo que dice la nota del proveedor'+(FOTO_MODAL?' (sí hay foto)':'')+'.\n\n¿Guardar sin nota?');}
+  const d=difNotaRec(rec);rec.coincideNota=d===0;rec.difNota=d;
+  if(d&&!rec.fotoNota&&GAS_URL)return confirm(rec.detalleNota+'\n\nNo tomó foto de la nota. ¿Guardar sin foto?');
+  return true;
+}
+/** Fecha y hora automáticas al guardar (Gerencia puede marcar captura tardía). */
+function htmlFH(px,rec){
+  if(rec)return `<label class="f">Fecha<input type="date" id="${px}Fecha" value="${rec.fecha}"></label><label class="f">Hora<input type="time" id="${px}Hora" value="${rec.hora||''}"></label>`;
+  return `<div class="f" style="min-width:200px"><span>Fecha y hora</span><b class="reloj" style="font-size:15px;color:var(--navy)">${fFecha(hoy())} ${ahora()}</b><span style="font-size:11px">Se registran automáticamente al guardar</span>
+  ${esAdmin()?`<label style="font-size:11px;margin-top:2px"><input type="checkbox" id="${px}Tarde" onchange="$('${px}FH').style.display=this.checked?'flex':'none'"> Captura tardía (otra fecha y hora)</label><div id="${px}FH" class="row" style="display:none;gap:6px"><input type="date" id="${px}Fecha" value="${hoy()}"><input type="time" id="${px}Hora" value="${ahora()}"></div>`:''}</div>`;
+}
+function leerFH(px,prev){
+  if(prev)return {fecha:$(px+'Fecha').value,hora:$(px+'Hora').value,registrado:prev.registrado||'',tardia:!!prev.tardia};
+  const t=$(px+'Tarde');const now=new Date().toISOString();
+  if(t&&t.checked)return {fecha:$(px+'Fecha').value,hora:$(px+'Hora').value,registrado:now,tardia:true};
+  return {fecha:hoy(),hora:ahora(),registrado:now,tardia:false};
+}
+const marcaTardia=r=>r.tardia?' <span class="pill warn" title="Capturado después">tardía</span>':'';
+setInterval(()=>document.querySelectorAll('.reloj').forEach(e=>e.textContent=fFecha(hoy())+' '+ahora()),10000);
+function totalSimple(r){let t=0;Object.values(r.items||{}).forEach(v=>t+=num(v));return t;}
+function resumenItems(items,fn){return Object.keys(items||{}).map(pid=>{const v=fn(items[pid]);return v?prenda(pid).nombre+': '+v:'';}).filter(Boolean).join(' · ');}
 
 /* ================= CÁLCULOS ================= */
-/* Movimientos de piezas por ubicación: + entra, − sale */
-function flujos(ubic){
-  const out=[];const add=(r,items)=>out.push({ts:tsDe(r),items});
-  DB.altas.forEach(r=>{if(r.destino===ubic)add(r,{...r.items});});
-  if(ubic==='lav')DB.sucia.forEach(r=>add(r,{...r.items}));
-  DB.lavados.forEach(r=>{if(ubic==='lav'){const m={};Object.keys(r.items).forEach(p=>m[p]=-num(r.items[p]));add(r,m);}if(r.destino===ubic)add(r,{...r.items});});
-  if(ubic==='almacen')DB.surtidos.forEach(r=>{const m={};Object.keys(r.items).forEach(p=>m[p]=-num(r.items[p].e));add(r,m);});
-  DB.bajas.forEach(r=>{if(r.origen===ubic){const m={};Object.keys(r.items).forEach(p=>m[p]=-num(r.items[p]));add(r,m);}});
-  if(ubic==='crudo')DB.esteril.forEach(r=>{const m={};Object.keys(r.items).forEach(b=>{const c=bulto(b).comp||{};Object.keys(c).forEach(p=>m[p]=(m[p]||0)-num(c[p])*num(r.items[b]));});add(r,m);});
-  if(ubic==='anaquel'){DB.esteril.forEach(r=>add(r,{...r.items}));DB.usos.forEach(r=>{const m={};Object.keys(r.items).forEach(b=>m[b]=-num(r.items[b]));add(r,m);});}
+/** Saldo por prenda hasta una fecha (inclusive). Devuelve {pid:{env,acep,rech,fal,ini,saldo,lotes:[{fecha,qty}]}} */
+function calcularSaldo(hasta){
+  hasta=hasta||'9999-12-31';
+  const R={};const ensure=p=>R[p]=R[p]||{env:0,acep:0,rech:0,fal:0,ini:0,saldo:0,entradas:[]};
+  DB.envios.filter(e=>e.fecha<=hasta).forEach(e=>Object.keys(e.items||{}).forEach(p=>{const q=num(e.items[p].c)+num(e.items[p].x);if(!q)return;ensure(p);R[p].env+=q;R[p].entradas.push({fecha:e.fecha,qty:q});}));
+  DB.ajustes.filter(a=>a.fecha<=hasta).forEach(a=>Object.keys(a.items||{}).forEach(p=>{const q=num(a.items[p]);if(!q)return;ensure(p);
+    if(a.tipo==='inicial'){R[p].ini+=q;R[p].entradas.push({fecha:a.fecha,qty:q});}else R[p].fal+=q;}));
+  DB.recepciones.filter(r=>r.fecha<=hasta).forEach(r=>Object.keys(r.items||{}).forEach(p=>{ensure(p);R[p].acep+=num(r.items[p].a);R[p].rech+=num(r.items[p].r);}));
+  const ref=hasta==='9999-12-31'?hoy():hasta;
+  Object.keys(R).forEach(p=>{
+    const o=R[p];o.saldo=o.env+o.ini-o.acep-o.fal;
+    // FIFO: lo aceptado y lo declarado faltante cancela primero las entradas más antiguas
+    let salida=o.acep+o.fal;const lotes=o.entradas.slice().sort((a,b)=>a.fecha<b.fecha?-1:a.fecha>b.fecha?1:0);const pend=[];
+    lotes.forEach(l=>{const usa=Math.min(l.qty,salida);salida-=usa;if(l.qty-usa>0)pend.push({fecha:l.fecha,qty:l.qty-usa});});
+    o.pendientes=pend;o.masAntigua=pend.length?pend[0].fecha:null;o.dias=o.masAntigua?diasEntre(o.masAntigua,ref):0;
+    o.vencidas=pend.filter(l=>diasEntre(l.fecha,ref)>DB.config.params.diasAlerta).reduce((s,l)=>s+l.qty,0);
+    o.escaladas=pend.filter(l=>diasEntre(l.fecha,ref)>DB.config.params.diasEscala).reduce((s,l)=>s+l.qty,0);
+  });
+  return R;
+}
+function dotacionDe(sid,pid){
+  const d=(DB.config.dotacion[sid]||{})[pid]||{};
+  return {efectiva:num(d.stock)};
+}
+function tsDe(r){return (r.fecha||'')+'T'+(r.hora||'00:00');}
+function hastaTs(hasta){return !hasta?'9999-12-31T99:99':(hasta.length<=10?hasta+'T99:99':hasta);}
+function ultimoConteo(sid,hasta){
+  const H=hastaTs(hasta);
+  return DB.conteos.filter(c=>c.servicio===sid&&tsDe(c)<=H).sort((a,b)=>tsDe(b).localeCompare(tsDe(a)))[0]||null;
+}
+/** Nivel conocido de un servicio: el conteo o resurtido más reciente (tras resurtir = conteo + surtido). */
+function nivelServicio(sid,hasta){
+  const H=hastaTs(hasta);const c=ultimoConteo(sid,H);
+  const s=DB.surtidos.filter(x=>x.servicio===sid&&tsDe(x)<=H).sort((a,b)=>tsDe(b).localeCompare(tsDe(a)))[0]||null;
+  if(s&&(!c||tsDe(s)>=tsDe(c))){const items={};const k=new Set([...Object.keys(s.conteo||{}),...Object.keys(s.items||{})]);k.forEach(p=>items[p]=num((s.conteo||{})[p])+num((s.items||{})[p]));
+    return {fecha:s.fecha,hora:s.hora,items,fuente:'Resurtido '+s.folio};}
+  return c?{fecha:c.fecha,hora:c.hora,items:c.items||{},fuente:'Conteo '+c.folio}:null;
+}
+/** Existencia teórica en Paliativos a una fecha/hora. excluirId: conteo que se está guardando. */
+function existenciaPaliativos(hasta,excluirId){
+  const H=hastaTs(hasta);
+  const base=DB.conteos.filter(c=>c.servicio==='roperia'&&c.id!==excluirId&&tsDe(c)<=H).sort((a,b)=>tsDe(b).localeCompare(tsDe(a)))[0]||null;
+  const B=base?tsDe(base):'';const items={},ent={},sal={};
+  if(base)Object.keys(base.items||{}).forEach(p=>items[p]=num(base.items[p]));
+  DB.recepciones.filter(r=>tsDe(r)>B&&tsDe(r)<=H).forEach(r=>Object.keys(r.items||{}).forEach(p=>{const a=num(r.items[p].a);ent[p]=(ent[p]||0)+a;items[p]=(items[p]||0)+a;}));
+  DB.surtidos.filter(s=>tsDe(s)>B&&tsDe(s)<=H).forEach(s=>Object.keys(s.items||{}).forEach(p=>{const q=num(s.items[p]);sal[p]=(sal[p]||0)+q;items[p]=(items[p]||0)-q;}));
+  return {base,items,ent,sal};
+}
+/** Cobertura por servicio: {sid:{conteo, filas:[{pid,dot,cont,cob}], cobGlobal, bajo}} */
+function calcularCobertura(hasta){
+  const out={};
+  serviciosStock().forEach(s=>{
+    const c=nivelServicio(s.id,hasta);const filas=[];let sd=0,sc=0,bajo=0;
+    prendasActivas().forEach(p=>{const d=dotacionDe(s.id,p.id).efectiva;if(!d)return;const ct=c?num((c.items||{})[p.id]):null;
+      const cob=c?Math.min(ct/d*100,999):null;filas.push({pid:p.id,dot:d,cont:ct,cob});sd+=d;if(c){sc+=Math.min(ct,d);if(cob<DB.config.params.metaCobertura)bajo++;}});
+    out[s.id]={conteo:c,filas,cobGlobal:c&&sd?sc/sd*100:null,bajo,dotTotal:sd};
+  });
   return out;
 }
-function saldo(ubic,hasta){
-  const H=hasta||'9999-12-31T99:99';
-  const cs=DB.conteos.filter(c=>c.ubic===ubic&&tsDe(c)<=H).sort((a,b)=>tsDe(a)<tsDe(b)?-1:1);
-  const last=cs[cs.length-1];const items=last?{...last.items}:{};const t0=last?tsDe(last):'';
-  flujos(ubic).forEach(f=>{if(f.ts>t0&&f.ts<=H)Object.keys(f.items).forEach(k=>items[k]=num(items[k])+num(f.items[k]));});
-  return {items,conteo:last||null};
+function calcularMes(m){
+  const P=DB.config.params;const fin=finDeMes(m);const ref=hoy()<fin?hoy():fin;
+  const dias=mesDe(hoy())===m?Number(hoy().slice(8)):diasDelMes(m);
+  const por={};const e=p=>por[p]=por[p]||{env:0,envX:0,acep:0,rech:0,fal:0};
+  let bolsas=0,difNota=0,difNotaEnv=0,sinNota=0;const motivos={};
+  DB.envios.filter(x=>mesDe(x.fecha)===m).forEach(x=>{difNotaEnv+=difNotaRec(x);if(!tieneNota(x))sinNota++;bolsas+=num(x.bolsasCont);Object.keys(x.items||{}).forEach(p=>{e(p);por[p].env+=num(x.items[p].c)+num(x.items[p].x);por[p].envX+=num(x.items[p].x);});});
+  DB.recepciones.filter(x=>mesDe(x.fecha)===m).forEach(x=>{difNota+=difNotaRec(x);if(!tieneNota(x))sinNota++;(x.motivos||[]).forEach(mo=>motivos[mo]=(motivos[mo]||0)+1);Object.keys(x.items||{}).forEach(p=>{e(p);por[p].acep+=num(x.items[p].a);por[p].rech+=num(x.items[p].r);});});
+  DB.ajustes.filter(x=>mesDe(x.fecha)===m&&x.tipo!=='inicial').forEach(x=>Object.keys(x.items||{}).forEach(p=>{e(p);por[p].fal+=num(x.items[p]);}));
+  const saldo=calcularSaldo(ref);const cob=calcularCobertura(ref);
+  // existencia total por prenda = último conteo de cada servicio + saldo en lavandería
+  const exist={};Object.values(cob).forEach(c=>{if(!c.conteo)return;Object.keys(c.conteo.items||{}).forEach(p=>exist[p]=(exist[p]||0)+num(c.conteo.items[p]));});
+  const pal=existenciaPaliativos(ref);Object.keys(pal.items).forEach(p=>exist[p]=(exist[p]||0)+Math.max(pal.items[p],0));
+  const surt={};DB.surtidos.filter(x=>mesDe(x.fecha)===m).forEach(x=>{const o=surt[x.servicio]=surt[x.servicio]||{};Object.keys(x.items||{}).forEach(p=>o[p]=(o[p]||0)+num(x.items[p]));});
+  const filas=[];let T={env:0,acep:0,rech:0,fal:0,exist:0,rec:0};
+  const ids=new Set([...Object.keys(por),...prendasActivas().map(p=>p.id)]);
+  ids.forEach(pid=>{const o=por[pid]||{env:0,envX:0,acep:0,rech:0,fal:0};const sal=saldo[pid]?Math.max(saldo[pid].saldo,0):0;
+    const consumo=dias?o.env/dias:0;const ex=(exist[pid]||0)+sal;const recom=consumo*num(P.factorCirculacion);
+    if(!o.env&&!o.acep&&!o.rech&&!o.fal&&!ex)return;
+    filas.push({pid,...o,consumo,exist:ex,saldo:sal,recom,suf:recom>0?ex/recom*100:null});
+    T.env+=o.env;T.acep+=o.acep;T.rech+=o.rech;T.fal+=o.fal;T.exist+=ex;T.rec+=recom;});
+  const vencidas=Object.values(saldo).reduce((s,o)=>s+o.vencidas,0);
+  const conCob=Object.values(cob).filter(c=>c.conteo);
+  const cobProm=conCob.length?conCob.reduce((s,c)=>s+c.cobGlobal,0)/conCob.length:null;
+  const prendasBajo=conCob.reduce((s,c)=>s+c.bajo,0);
+  return {m,dias,filas,T,bolsas,difNota,difNotaEnv,sinNota,motivos,surt,pal,saldo,cob,vencidas,
+    ind:{devolucion:pct(T.acep,T.env),rechazo:pct(T.rech,T.acep+T.rech),faltantes:pct(T.fal,T.env),vencidas,cobProm,prendasBajo,suficiencia:pct(T.exist,T.rec)}};
 }
-/* Piezas en lavandería con más de N horas (primeras entradas, primeras salidas) */
-function antiguedadLav(){
-  const S=saldo('lav').items;const H=num(DB.config.params.horasAlerta)||24;const res={};
-  const cs=DB.conteos.filter(c=>c.ubic==='lav').sort((a,b)=>tsDe(a)<tsDe(b)?-1:1);const last=cs[cs.length-1];const t0=last?tsDe(last):'';
-  Object.keys(S).forEach(p=>{
-    let pend=num(S[p]);if(pend<=0)return;let viejas=0;let masAnt=null;
-    const ent=DB.sucia.filter(r=>tsDe(r)>t0&&num(r.items[p])>0).sort((a,b)=>tsDe(a)<tsDe(b)?1:-1);
-    for(const r of ent){const tk=Math.min(pend,num(r.items[p]));if(horasDesde(tsDe(r))>H)viejas+=tk;masAnt=tsDe(r);pend-=tk;if(pend<=0)break;}
-    if(pend>0&&last){if(horasDesde(t0)>H)viejas+=pend;masAnt=t0;}
-    res[p]={pend:num(S[p]),viejas,masAnt};
-  });
-  return res;
-}
-function nivelServicio(sid,pid){
-  let best=null;
-  DB.conteos.forEach(c=>{if(c.ubic===sid&&c.items[pid]!==undefined&&(!best||tsDe(c)>best.ts))best={ts:tsDe(c),n:num(c.items[pid]),f:c.fecha};});
-  DB.surtidos.forEach(r=>{if(r.servicio===sid&&r.items[pid]&&(!best||tsDe(r)>best.ts))best={ts:tsDe(r),n:num(r.items[pid].c)+num(r.items[pid].e),f:r.fecha};});
-  return best;
-}
-function coberturaServicio(sid){
-  const st=DB.config.stock[sid]||{};let a=0,b=0,bajo=0,ult=null,conDato=false;
-  Object.keys(st).forEach(p=>{const s=num(st[p]);if(!s)return;const nv=nivelServicio(sid,p);b+=s;if(nv){conDato=true;a+=Math.min(nv.n,s);if(nv.n<s)bajo++;if(!ult||nv.ts>ult)ult=nv.ts;}});
-  return {cob:conDato&&b?a/b*100:null,bajo,ult};
-}
-function inventario(pid,hasta){
-  const H=hasta||'9999-12-31T99:99';let t=0;
-  DB.altas.forEach(r=>{if(tsDe(r)<=H)t+=num(r.items[pid]);});
-  DB.bajas.forEach(r=>{if(tsDe(r)<=H)t-=num(r.items[pid]);});
-  return t;
-}
-function piezasEnAnaquel(){const A=saldo('anaquel').items;const m={};Object.keys(A).forEach(b=>{const c=bulto(b).comp||{};Object.keys(c).forEach(p=>m[p]=(m[p]||0)+num(c[p])*Math.max(0,num(A[b])));});return m;}
-function enRango(r,m){return mesDe(r.fecha)===m;}
-function sumaCol(col,m,f){const t={};DB[col].filter(r=>enRango(r,m)&&(!f||f(r))).forEach(r=>Object.keys(r.items).forEach(k=>{const v=r.items[k];t[k]=(t[k]||0)+(typeof v==='object'?num(v.e):num(v));}));return t;}
+function semaforo(v,meta,mayorMejor){if(v===null||v===undefined)return '';return (mayorMejor?v>=meta:v<=meta)?'ok':'bad';}
 
-/* ================= PERFIL ================= */
+/* ================= NAVEGACIÓN / MODO ================= */
+$('nav').addEventListener('click',ev=>{const b=ev.target.closest('button');if(!b)return;irA(b.dataset.p);});
+function irA(p){document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('act',b.dataset.p===p));document.querySelectorAll('.page').forEach(s=>s.classList.toggle('act',s.id==='p-'+p));render();}
 function aplicarModo(){
-  document.body.classList.remove('rol-admin','rol-lav');if(ROL)document.body.classList.add('rol-'+ROL);
+  document.body.classList.remove('rol-admin','rol-sup','rol-vig');if(ROL)document.body.classList.add('rol-'+ROL);
   $('modoTxt').textContent=ROL?ROL_NOMBRE[ROL]:'Solo lectura';$('btnPin').textContent=ROL?'🔓 Salir':'🔒 Entrar con PIN';
+  if(ROL==='vig'){const act=(document.querySelector('.page.act')||{}).id;if(act!=='p-envios'&&act!=='p-recepciones')irA('recepciones');}
 }
 function pedirPin(){
-  if(ROL){ROL='';sessionStorage.removeItem('ropa_rol3');aplicarModo();render();return;}
-  abrirModal(`<h2>Entrar con PIN</h2><label class="f">PIN (acceso general o Lavandería)<input type="password" id="pinIn"></label>
-  <div class="mfoot"><button class="btn sec" onclick="cerrarModal()">Cancelar</button><button class="btn" id="btnEntrar" onclick="validarPin()">Entrar</button></div>`);
-  setTimeout(()=>{const i=$('pinIn');if(i){i.focus();i.addEventListener('keydown',e=>{if(e.key==='Enter')validarPin();});}},50);
+  if(ROL){ROL='';sessionStorage.removeItem('ropa_rol');aplicarModo();render();return;}
+  abrirModal(`<h2>Entrar con PIN</h2><label class="f">PIN (acceso general o Vigilancia)<input type="password" id="pinIn" autofocus></label>
+  <div class="mfoot"><button class="btn sec" onclick="cerrarModal()">Cancelar</button><button class="btn" onclick="validarPin()">Entrar</button></div>`);
+  setTimeout(()=>{const i=$('pinIn');i&&i.focus();i&&i.addEventListener('keydown',e=>{if(e.key==='Enter')validarPin();});},50);
 }
-function validarPin(){const r=PINS[$('pinIn').value.trim().toUpperCase()];if(r){ROL=r;sessionStorage.setItem('ropa_rol3',r);cerrarModal();aplicarModo();render();toast('Perfil: '+ROL_NOMBRE[r]);}else toast('PIN incorrecto');}
-function requiere(acc){if(!puede(acc)){toast(ROL?'Su perfil no tiene permiso para esta acción':'Entre con su PIN');return false;}return true;}
+function validarPin(){const r=PINS[$('pinIn').value];if(r){ROL=r;sessionStorage.setItem('ropa_rol',r);cerrarModal();aplicarModo();render();toast('Perfil: '+ROL_NOMBRE[r]);}else toast('PIN incorrecto');}
+function requiere(acc){if(!puede(acc)){toast(ROL?'Su perfil no tiene permiso para esta acción':'Ingrese su PIN');return false;}return true;}
 function abrirModal(html){$('modalBox').innerHTML=html;$('modal').classList.add('show');}
 function cerrarModal(){$('modal').classList.remove('show');$('modalBox').innerHTML='';}
 
 /* ================= SINCRONIZACIÓN ================= */
-function estadoSync(t,x){$('syncDot').className='dot '+t;$('syncTxt').textContent=x;}
+function estadoSync(tipo,txt){$('syncDot').className='dot '+tipo;$('syncTxt').textContent=txt;}
 function encolar(op){QUEUE.push(op);guardarLocal();vaciarCola();}
 let enviando=false;
 async function vaciarCola(){
   if(!GAS_URL){estadoSync('','Solo en este equipo');return;}
   if(enviando)return;enviando=true;
-  try{while(QUEUE.length){estadoSync('warn','Guardando… ('+QUEUE.length+')');
-      const r=await fetch(GAS_URL,{method:'POST',body:JSON.stringify(QUEUE[0])});const j=await r.json();
-      if(!j.ok)throw new Error(j.error||'Error del servidor');QUEUE.shift();guardarLocal();}
+  try{
+    while(QUEUE.length){
+      estadoSync('warn','Guardando… ('+QUEUE.length+')');
+      const r=await fetch(GAS_URL,{method:'POST',body:JSON.stringify(QUEUE[0])});
+      const j=await r.json();if(!j.ok)throw new Error(j.error||'Error del servidor');
+      const op=QUEUE.shift();
+      if(j.rec&&j.rec.fotoNota&&op.col){const x=(DB[op.col]||[]).find(z=>z.id===j.rec.id);if(x)x.fotoNota=j.rec.fotoNota;
+        QUEUE.forEach(q=>{if(q.rec&&q.rec.id===j.rec.id&&q.rec.fotoNota&&q.rec.fotoNota.pendiente&&!q.foto)q.rec.fotoNota=j.rec.fotoNota;});render();}
+      guardarLocal();
+    }
     estadoSync('ok','Sincronizado');
   }catch(e){estadoSync('err','Sin sincronizar ('+QUEUE.length+')');console.error(e);}
   finally{enviando=false;}
 }
 async function sincronizar(manual){
-  if(!GAS_URL){estadoSync('','Solo en este equipo');return;}
-  await vaciarCola();if(QUEUE.length){if(manual)toast('Hay cambios sin enviar; se reintentará');return;}
-  try{estadoSync('warn','Cargando…');
-    const r=await fetch(GAS_URL+'?action=getAll&v=3&t='+Date.now());const j=await r.json();if(!j.ok)throw new Error(j.error);
-    const d=j.data;const o=vacio();COLS.forEach(c=>o[c]=d[c]||[]);o.config=d.config?normConfig(d.config):DB.config;DB=o;
+  if(!GAS_URL){estadoSync('','Solo en este equipo');if(manual)toast('Configure GAS_URL en el código para sincronizar con Google Sheets');return;}
+  await vaciarCola();
+  if(QUEUE.length){if(manual)toast('Hay cambios sin enviar; se reintentará');return;}
+  try{
+    estadoSync('warn','Cargando…');
+    const r=await fetch(GAS_URL+'?action=getAll&t='+Date.now());const j=await r.json();if(!j.ok)throw new Error(j.error);
+    const d=j.data;
+    DB={config:d.config?normConfig(d.config):DB.config,envios:d.envios||[],recepciones:d.recepciones||[],ajustes:d.ajustes||[],conteos:d.conteos||[],surtidos:d.surtidos||[]};
     if(!d.config)encolar({action:'saveConfig',config:DB.config});
     guardarLocal();estadoSync('ok','Sincronizado');render();if(manual)toast('Datos actualizados');
   }catch(e){estadoSync('err','Sin conexión');console.error(e);if(manual)toast('No se pudo conectar con Google Sheets');}
 }
-function guardarRegistro(col,rec){
+function guardarRegistro(col,rec,foto){
   const i=DB[col].findIndex(r=>r.id===rec.id);if(i>=0)DB[col][i]=rec;else DB[col].push(rec);
-  guardarLocal();encolar({action:'upsert',col,rec});render();
+  const op={action:'upsert',col,rec};if(foto)op.foto=foto;
+  guardarLocal();encolar(op);render();
 }
 function borrarRegistro(col,id){
   if(!requiere('admin'))return;const r=DB[col].find(x=>x.id===id);if(!r)return;
@@ -430,343 +534,366 @@ function borrarRegistro(col,id){
 }
 function guardarConfig(){guardarLocal();encolar({action:'saveConfig',config:DB.config});}
 
-/* ================= NAVEGACIÓN ================= */
-function irA(p){document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('act',b.dataset.p===p));document.querySelectorAll('.page').forEach(s=>s.classList.toggle('act',s.id==='p-'+p));render();window.scrollTo(0,0);}
+/* ================= RENDER GENERAL ================= */
 function render(){
-  llenarMeses();const p=(document.querySelector('.page.act')||{}).id;
-  ({'p-tablero':renderTablero,'p-sucia':renderSucia,'p-lavado':renderLavado,'p-almacen':renderAlmacen,'p-servicios':renderServicios,
-    'p-qx':renderQx,'p-inventario':renderInventario,'p-concentrado':renderConcentrado,'p-config':renderConfig}[p]||(()=>{}))();
+  const p=(document.querySelector('.page.act')||{}).id;
+  llenarMeses();
+  if(p==='p-tablero')renderTablero();
+  if(p==='p-envios')renderEnvios();
+  if(p==='p-recepciones')renderRecepciones();
+  if(p==='p-paliativos')renderPaliativos();
+  if(p==='p-saldo')renderSaldo();
+  if(p==='p-dotacion')renderDotacion();
+  if(p==='p-concentrado')renderConcentrado();
+  if(p==='p-config')renderConfig();
 }
-function mesesDisponibles(){const s=new Set([mesDe(hoy())]);COLS.forEach(c=>DB[c].forEach(r=>r.fecha&&s.add(mesDe(r.fecha))));return [...s].sort().reverse();}
+function mesesDisponibles(){
+  const s=new Set([mesDe(hoy())]);['envios','recepciones','ajustes','conteos','surtidos'].forEach(c=>DB[c].forEach(r=>r.fecha&&s.add(mesDe(r.fecha))));
+  return [...s].sort().reverse();
+}
 function llenarMeses(){
   const ms=mesesDisponibles();
-  document.querySelectorAll('select.mes').forEach(el=>{const v=el.value;const todos=el.dataset.todos==='1';
+  [['fEnvMes',true],['fRecMes',true],['fPalMes',true],['selMesConc',false]].forEach(([id,todos])=>{const el=$(id);const v=el.value;
     el.innerHTML=(todos?'<option value="">Todos los meses</option>':'')+ms.map(m=>`<option value="${m}">${nombreMes(m)}</option>`).join('');
-    el.value=v&&[...el.options].some(o=>o.value===v)?v:ms[0];});
+    if(v&&[...el.options].some(o=>o.value===v))el.value=v;else el.value=todos?mesDe(hoy()):ms[0];});
 }
-const kpi=(l,v,m,c)=>`<div class="kpi ${c||''}"><div class="l">${l}</div><div class="v">${v}</div><div class="m">${m||''}</div></div>`;
-const pill=(t,c)=>`<span class="pill ${c}">${t}</span>`;
-function sem(v,meta,mayor){if(v===null||v===undefined)return '';return (mayor?v>=meta:v<=meta)?'ok':'bad';}
 
-/* ================= TABLERO ================= */
+/* ---------- Tablero ---------- */
 function renderTablero(){
-  const P=DB.config.params,m=mesDe(hoy());
-  const sucHoy=DB.sucia.filter(r=>r.fecha===hoy()).reduce((s,r)=>s+sumItems(r.items),0);
-  const sucMes=DB.sucia.filter(r=>enRango(r,m)).reduce((s,r)=>s+sumItems(r.items),0);
-  const ant=antiguedadLav();let enLav=0,viejas=0;Object.values(ant).forEach(o=>{enLav+=o.pend;viejas+=o.viejas;});
-  const alm=saldo('almacen').items;let totAlm=0,bajoMin=0;prendas('piso').forEach(p=>{const v=num(alm[p.id]);totAlm+=Math.max(0,v);if(p.consumo>0&&v<p.consumo)bajoMin++;});
-  const cobs=servicios().map(s=>coberturaServicio(s.id).cob).filter(v=>v!==null);const cobProm=cobs.length?cobs.reduce((a,b)=>a+b,0)/cobs.length:null;
-  const an=saldo('anaquel').items;let totB=0,metaB=0,tiposBajo=0;bultos().forEach(b=>{const v=num(an[b.id]);totB+=Math.max(0,v);metaB+=num(b.stock);if(num(b.stock)&&v<num(b.stock))tiposBajo++;});
-  let inv=0,meta=0;prendas().forEach(p=>{inv+=inventario(p.id);meta+=num(p.meta);});
-  const bajasMes=DB.bajas.filter(r=>enRango(r,m)).reduce((s,r)=>s+sumItems(r.items),0);const pBajas=inv>0?bajasMes/inv*100:null;
+  const P=DB.config.params;const c=calcularMes(mesDe(hoy()));const S=c.saldo;
+  const saldoTot=Object.values(S).reduce((s,o)=>s+Math.max(o.saldo,0),0);
+  const ultEnv=DB.envios.slice().sort((a,b)=>a.fecha<b.fecha?1:-1)[0];const ultRec=DB.recepciones.slice().sort((a,b)=>a.fecha<b.fecha?1:-1)[0];
   $('kpisTablero').innerHTML=[
-    kpi('Ropa sucia recibida hoy',fmt(sucHoy),'Promedio del mes: '+fmt(sucMes/diasOperacion(m),0)+' piezas por día con registro'),
-    kpi('En proceso en lavandería',fmt(enLav),viejas?fmt(viejas)+' piezas con más de '+P.horasAlerta+' h':'Ninguna con más de '+P.horasAlerta+' h',viejas?'bad':'ok'),
-    kpi('Almacén central',fmt(totAlm),bajoMin?bajoMin+' prendas bajo el mínimo (1 día alto)':'Todas las prendas sobre el mínimo',bajoMin?'warn':'ok'),
-    kpi('Cobertura de servicios',fpct(cobProm),'Meta ≥ '+P.metaCobertura+' %',sem(cobProm,P.metaCobertura,true)),
-    kpi('Bultos estériles en anaquel',fmt(totB)+' / '+fmt(metaB),tiposBajo?tiposBajo+' tipos de bulto bajo stock':'Stock completo',tiposBajo?'warn':'ok'),
-    kpi('Inventario de ropa',fmt(inv)+' / '+fmt(meta),'Piezas en inventario / inventario calculado',inv>=meta?'ok':'warn'),
-    kpi('Bajas del mes',fmt(bajasMes),pBajas===null?'Sin inventario registrado':fpct(pBajas)+' del inventario · meta ≤ '+P.metaBajasMes+' %',pBajas===null?'':sem(pBajas,P.metaBajasMes,false))
+    kpi('Piezas en lavandería',fmt(saldoTot),'Saldo actual con el proveedor',''),
+    kpi('Piezas con más de '+P.diasAlerta+' días',fmt(c.vencidas),'Meta: 0 piezas',c.vencidas>0?'bad':'ok'),
+    kpi('Rechazo de calidad (mes)',fpct(c.ind.rechazo),'Meta ≤ '+P.metaRechazo+' %',semaforo(c.ind.rechazo,P.metaRechazo,false)),
+    kpi('Devolución (mes)',fpct(c.ind.devolucion),'Meta ≥ '+P.metaDevolucion+' %',semaforo(c.ind.devolucion,P.metaDevolucion,true)),
+    kpi('Cobertura de stock',fpct(c.ind.cobProm),c.ind.prendasBajo?c.ind.prendasBajo+' prendas bajo '+P.metaCobertura+' %':'Meta ≥ '+P.metaCobertura+' %',semaforo(c.ind.cobProm,P.metaCobertura,true)),
+    kpi('En Paliativos',fmt(Object.values(c.pal.items).reduce((s,v)=>s+Math.max(v,0),0)),'Ropa limpia disponible para resurtir',''),
+    kpi('Último envío / recepción',(ultEnv?fFecha(ultEnv.fecha):'—')+' / '+(ultRec?fFecha(ultRec.fecha):'—'),'',''),
   ].join('');
-  $('tabEstadoPiso').innerHTML=tablaEstado('piso');$('tabEstadoQx').innerHTML=tablaEstado('qx');
-  $('tabServMini').innerHTML=`<table><tr><th>Servicio</th><th>Último conteo o resurtido</th><th class="n">Cobertura</th><th class="n">Prendas bajo stock</th></tr>${servicios().map(s=>{const c=coberturaServicio(s.id);return `<tr><td>${esc(s.nombre)}</td><td>${c.ult?fFecha(c.ult.slice(0,10))+' '+c.ult.slice(11):'<span class="muted">Sin registro</span>'}</td><td class="n">${c.cob===null?'—':pill(fpct(c.cob),sem(c.cob,P.metaCobertura,true))}</td><td class="n">${c.ult?c.bajo:'—'}</td></tr>`;}).join('')}</table>`;
+  const filas=Object.keys(S).filter(p=>S[p].saldo!==0).map(p=>({p,...S[p]})).sort((a,b)=>b.dias-a.dias);
+  $('tabSaldoMini').innerHTML=filas.length?`<table><tr><th>Prenda</th><th class="n">Saldo</th><th>Envío pendiente más antiguo</th><th class="n">Días</th></tr>${filas.map(f=>`<tr><td>${esc(prenda(f.p).nombre)}</td><td class="n ${f.saldo<0?'bad':''}">${fmt(f.saldo)}</td><td>${f.masAntigua?fFecha(f.masAntigua):'—'}</td><td class="n">${diasPill(f.dias,f.saldo)}</td></tr>`).join('')}</table>`:'<div class="empty">No hay piezas pendientes con el proveedor.</div>';
+  const cob=c.cob;
+  $('tabCobMini').innerHTML=`<table><tr><th>Servicio</th><th>Último conteo</th><th class="n">Cobertura</th><th class="n">Prendas bajo meta</th></tr>${serviciosStock().map(s=>{const o=cob[s.id];return `<tr><td>${esc(s.nombre)}</td><td>${o.conteo?fFecha(o.conteo.fecha):'<span class="muted">Sin conteo</span>'}</td><td class="n">${o.cobGlobal===null?'—':`<span class="pill ${semaforo(o.cobGlobal,P.metaCobertura,true)}">${fpct(o.cobGlobal)}</span>`}</td><td class="n">${o.conteo?o.bajo:'—'}</td></tr>`;}).join('')}</table>`;
 }
-function tablaEstado(g){
-  const ant=antiguedadLav();const alm=saldo('almacen').items;const cru=saldo('crudo').items;const anq=piezasEnAnaquel();
-  const rows=prendas(g).map(p=>{const inv=inventario(p.id);const L=ant[p.id]||{pend:0,viejas:0};
-    const a=g==='piso'?num(alm[p.id]):num(cru[p.id]);const b=g==='qx'?num(anq[p.id]):0;const resto=inv-a-L.pend-b;
-    return {p,inv,a,b,L,resto};});
-  const T={inv:0,a:0,b:0,lav:0,v:0,resto:0,meta:0};rows.forEach(r=>{T.inv+=r.inv;T.a+=r.a;T.b+=r.b;T.lav+=r.L.pend;T.v+=r.L.viejas;T.resto+=r.resto;T.meta+=num(r.p.meta);});
-  const head=g==='piso'?'<th class="n">Almacén</th><th class="n">Mínimo almacén</th>':'<th class="n">Crudo (CEyE)</th><th class="n">En bultos estériles</th>';
-  return `<table><tr><th>Prenda</th><th class="n">Inventario calculado</th><th class="n">En inventario</th>${head}<th class="n">En lavandería</th><th class="n">Más de ${DB.config.params.horasAlerta} h</th><th class="n">${g==='piso'?'En servicios y camas':'En quirófano / uso'}</th></tr>
-  ${rows.map(r=>`<tr><td>${esc(r.p.nombre)}</td><td class="n">${fmt(r.p.meta)}</td><td class="n ${r.inv<num(r.p.meta)?'warn':''}">${fmt(r.inv)}</td>
-   ${g==='piso'?`<td class="n ${r.p.consumo>0&&r.a<r.p.consumo?'bad':''}">${fmt(r.a)}</td><td class="n muted">${fmt(Math.ceil(num(r.p.consumo)))}</td>`:`<td class="n">${fmt(r.a)}</td><td class="n">${fmt(r.b)}</td>`}
-   <td class="n">${fmt(r.L.pend)}</td><td class="n ${r.L.viejas?'bad':''}">${fmt(r.L.viejas)}</td><td class="n ${r.resto<0?'bad':''}">${fmt(r.resto)}</td></tr>`).join('')}
-  <tr class="tot"><td>Total</td><td class="n">${fmt(T.meta)}</td><td class="n">${fmt(T.inv)}</td>${g==='piso'?`<td class="n">${fmt(T.a)}</td><td></td>`:`<td class="n">${fmt(T.a)}</td><td class="n">${fmt(T.b)}</td>`}<td class="n">${fmt(T.lav)}</td><td class="n">${fmt(T.v)}</td><td class="n">${fmt(T.resto)}</td></tr></table><div class="muted" style="margin-top:6px">${g==='piso'?'En servicios y camas':'En quirófano / uso'} = inventario − lo que está en ${g==='piso'?'almacén':'CEyE'} y en lavandería. Un número negativo indica movimientos sin registrar o un conteo físico pendiente.</div>`;
+function kpi(l,v,m,cls){return `<div class="kpi ${cls}"><div class="l">${l}</div><div class="v">${v}</div><div class="m">${m}</div></div>`;}
+function diasPill(d,saldo){if(saldo<=0)return '—';const P=DB.config.params;const c=d>P.diasEscala?'bad':d>P.diasAlerta?'warn':'ok';return `<span class="pill ${c}">${d}</span>`;}
+
+/* ---------- Envíos ---------- */
+function renderEnvios(){
+  const m=$('fEnvMes').value;const L=DB.envios.filter(e=>!m||mesDe(e.fecha)===m).sort((a,b)=>(b.fecha+b.hora).localeCompare(a.fecha+a.hora));
+  if(!L.length){$('tabEnvios').innerHTML='<div class="empty">Sin envíos en el periodo.</div>';return;}
+  let tc=0,tx=0,tk=0,tb=0;
+  $('tabEnvios').innerHTML=`<table><tr><th>Folio</th><th>Fecha</th><th class="n">Común</th><th class="n">Contaminada</th><th class="n">Total</th><th class="n">Bolsas contam.</th><th>Nota del proveedor</th><th>Recibió (proveedor)</th><th></th></tr>${L.map(e=>{
+    let c=0,x=0;Object.values(e.items||{}).forEach(v=>{c+=num(v.c);x+=num(v.x);});tc+=c;tx+=x;tb+=num(e.bolsasCont);
+    return `<tr><td><b>${esc(e.folio)}</b></td><td>${fFecha(e.fecha)} ${esc(e.hora||'')}${marcaTardia(e)}</td><td class="n">${fmt(c)}</td><td class="n">${fmt(x)}</td><td class="n"><b>${fmt(c+x)}</b></td><td class="n">${fmt(e.bolsasCont)}</td><td>${pillNota(e)}${fotoLink(e)}</td><td>${esc(e.recibe||'')}</td>
+    <td style="white-space:nowrap"><button class="btn sec sm" onclick="imprimirEnvio('${e.id}')">🖨</button> <button class="btn sec sm edit-only" onclick="abrirEnvio('${e.id}')">Editar</button> <button class="btn red sm edit-only" onclick="borrarRegistro('envios','${e.id}')">✕</button></td></tr>`;}).join('')}
+    <tr class="tot"><td colspan="2">Total</td><td class="n">${fmt(tc)}</td><td class="n">${fmt(tx)}</td><td class="n">${fmt(tc+tx)}</td><td class="n">${fmt(tb)}</td><td colspan="3"></td></tr></table>`;
+}
+function gridHTML(cols,valores){
+  // cols: [{k,label}] ; valores: {pid:{k:n}}
+  const g=grupos(prendasActivas());
+  return `<div class="tw" style="max-height:52vh;overflow-y:auto"><table><tr><th>Prenda</th>${cols.map(c=>`<th class="n">${c.label}</th>`).join('')}</tr>${Object.keys(g).map(gr=>`<tr class="grp"><td colspan="${cols.length+1}">${esc(gr)}</td></tr>`+g[gr].map(p=>`<tr><td>${esc(p.nombre)}</td>${cols.map(c=>`<td class="n"><input type="number" min="0" step="1" data-p="${p.id}" data-k="${c.k}" value="${valores&&valores[p.id]&&num(valores[p.id][c.k])?num(valores[p.id][c.k]):''}" oninput="totalGrid()"></td>`).join('')}</tr>`).join('')).join('')}
+  <tr class="tot"><td>Total</td>${cols.map(c=>`<td class="n" id="tg-${c.k}">0</td>`).join('')}</tr></table></div>`;
+}
+function totalGrid(){const t={};document.querySelectorAll('#modalBox input[data-p]').forEach(i=>{t[i.dataset.k]=(t[i.dataset.k]||0)+num(i.value);});Object.keys(t).forEach(k=>{const e=$('tg-'+k);if(e)e.textContent=fmt(t[k]);});actualizarDifNota();}
+function leerGrid(){const it={};document.querySelectorAll('#modalBox input[data-p]').forEach(i=>{const v=Math.max(0,Math.round(num(i.value)));if(!v)return;(it[i.dataset.p]=it[i.dataset.p]||{})[i.dataset.k]=v;});return it;}
+function abrirEnvio(id){
+  FOTO_MODAL=null;
+  if(!requiere(id?'admin':'vig'))return;const e=id?DB.envios.find(x=>x.id===id):null;
+  abrirModal(`<h2>${e?'Editar envío '+esc(e.folio):'Nuevo envío de ropa sucia'}</h2>
+  <div class="row">${htmlFH('e',e)}<label class="f">Nota / remisión del proveedor<input id="eNotaProv" value="${esc(e?e.notaProv||'':'')}"></label>
+  <label class="f">Bolsas contaminadas<input type="number" min="0" id="eBol" value="${e?e.bolsasCont||'':''}"></label></div>
+  <div class="note">Común = contada pieza por pieza por Vigilancia en el Tanatorio. Contaminada = lo declarado en la etiqueta de cada bolsa (no se abre). Según nota = lo que anota el proveedor al recoger; común + contaminada debe coincidir.</div>
+  ${gridHTML([{k:'c',label:'Común'},{k:'x',label:'Contaminada'},{k:'n',label:'Según nota'}],e&&e.items)}
+  <div class="row" style="margin-top:10px"><label class="f" style="flex:1">Contó y entregó (Vigilancia)<input id="eEntrega" value="${esc(e?e.entrega:'')}"></label><label class="f" style="flex:1">Recibió (proveedor)<input id="eRecibe" value="${esc(e?e.recibe:'')}"></label></div>
+  ${htmlDifNota('Envío')}${htmlFoto(e)}
+  <label class="f" style="margin-top:8px">Observaciones (opcional)<textarea id="eObs">${esc(e?e.obs:'')}</textarea></label>
+  <div class="mfoot"><button class="btn sec" onclick="cerrarModal()">Cancelar</button><button class="btn" onclick="guardarEnvio('${e?e.id:''}')">Guardar envío</button></div>`);
+  totalGrid();
+}
+function guardarEnvio(id){
+  if(!requiere(id?'admin':'vig'))return;
+  const items=leerGrid();if(!Object.keys(items).length){toast('Capture al menos una pieza');return;}
+  const prev=id?DB.envios.find(x=>x.id===id):null;const FH=leerFH('e',prev);const fecha=FH.fecha;if(!fecha){toast('Indique la fecha');return;}
+  const rec={id:prev?prev.id:uid(),folio:prev?prev.folio:siguienteFolio('envios','ENV',fecha),tipo:'Envío',fecha,hora:FH.hora,registrado:FH.registrado,tardia:FH.tardia,notaProv:$('eNotaProv').value.trim(),bolsasCont:num($('eBol').value),
+    items,entrega:$('eEntrega').value.trim(),recibe:$('eRecibe').value.trim(),obs:$('eObs').value.trim()};
+  rec.resumen=resumenItems(items,v=>num(v.c)+num(v.x));
+  if(!validarNota(rec,'Vigilancia',prev))return;
+  guardarRegistro('envios',rec,FOTO_MODAL);FOTO_MODAL=null;cerrarModal();toast('Envío '+rec.folio+' guardado');
 }
 
-/* ================= FORMULARIOS GENÉRICOS ================= */
-function htmlFH(r){return `<div class="row"><label class="f">Fecha<input type="date" id="fF" value="${r?r.fecha:hoy()}"></label><label class="f">Hora<input type="time" id="fH" value="${r?r.hora:ahora()}"></label><span class="muted">${r?'':'La fecha y la hora se registran solas; cámbielas solo si captura un movimiento atrasado.'}</span></div>`;}
-function leerFH(){return {fecha:$('fF').value||hoy(),hora:$('fH').value||ahora()};}
-function gridHTML(lista,valores,extra){
-  /* extra: {titulo, f:(id)=>valor} columna informativa */
-  return `<div class="tw"><table class="grid"><tr><th>${lista.tipo==='bulto'?'Bulto':'Prenda'}</th>${extra?`<th class="n">${extra.titulo}</th>`:''}<th class="n">Piezas</th></tr>
-  ${lista.map(p=>`<tr><td>${esc(p.nombre)}</td>${extra?`<td class="n muted">${fmt(extra.f(p.id))}</td>`:''}<td class="n"><input type="number" min="0" step="1" data-p="${p.id}" value="${valores&&valores[p.id]?valores[p.id]:''}" oninput="totGrid()"></td></tr>`).join('')}
-  <tr class="tot"><td>Total</td>${extra?'<td></td>':''}<td class="n" id="gTot">0</td></tr></table></div>`;
+/* ---------- Recepciones ---------- */
+function renderRecepciones(){
+  const m=$('fRecMes').value;const L=DB.recepciones.filter(e=>!m||mesDe(e.fecha)===m).sort((a,b)=>(b.fecha+b.hora).localeCompare(a.fecha+a.hora));
+  if(!L.length){$('tabRecepciones').innerHTML='<div class="empty">Sin recepciones en el periodo.</div>';return;}
+  let ta=0,tr=0,tk=0,tn=0,td=0;
+  $('tabRecepciones').innerHTML=`<table><tr><th>Folio</th><th>Fecha</th><th>Remisión prov.</th><th class="n">Según nota</th><th class="n">Aceptadas</th><th class="n">Rechazadas</th><th>Nota</th><th class="n">% rechazo</th><th>Motivos</th><th></th></tr>${L.map(r=>{
+    const a=totalRec(r,'a'),x=totalRec(r,'r'),nn=totalRec(r,'n'),dn=difNotaRec(r);ta+=a;tr+=x;tn+=nn;td+=dn;const p=pct(x,a+x);
+    return `<tr><td><b>${esc(r.folio)}</b></td><td>${fFecha(r.fecha)} ${esc(r.hora||'')}${marcaTardia(r)}</td><td>${esc(r.remisionProv||'')}</td><td class="n">${nn?fmt(nn):'—'}</td><td class="n">${fmt(a)}</td><td class="n">${fmt(x)}</td><td>${pillNota(r)}${fotoLink(r)}</td><td class="n ${p>DB.config.params.metaRechazo?'bad':''}">${fpct(p)}</td><td class="muted">${esc((r.motivos||[]).join(', '))}</td>
+    <td style="white-space:nowrap"><button class="btn sec sm" onclick="imprimirRecepcion('${r.id}')">🖨</button> <button class="btn sec sm edit-only" onclick="abrirRecepcion('${r.id}')">Editar</button> <button class="btn red sm edit-only" onclick="borrarRegistro('recepciones','${r.id}')">✕</button></td></tr>`;}).join('')}
+    <tr class="tot"><td colspan="3">Total</td><td class="n">${fmt(tn)}</td><td class="n">${fmt(ta)}</td><td class="n">${fmt(tr)}</td><td class="n">${fmt(td)}</td><td class="n">${fpct(pct(tr,ta+tr))}</td><td colspan="2"></td></tr></table>`;
 }
-function totGrid(){let t=0;document.querySelectorAll('#modalBox input[data-p]').forEach(i=>t+=num(i.value));const e=$('gTot');if(e)e.textContent=fmt(t);if(window._onGrid)window._onGrid();}
-function leerGrid(){const it={};document.querySelectorAll('#modalBox input[data-p]').forEach(i=>{const v=Math.max(0,Math.round(num(i.value)));if(v)it[i.dataset.p]=v;});return it;}
-function lista(arr,tipo){arr.tipo=tipo;return arr;}
-function opcionesServ(sel,extra){return (extra||[]).concat(servicios().map(s=>[s.id,s.nombre])).map(([v,t])=>`<option value="${v}" ${v===sel?'selected':''}>${esc(t)}</option>`).join('');}
-function piePersona(lbl1,v1,lbl2,v2){return `<div class="row" style="margin-top:8px"><label class="f" style="flex:1">${lbl1}<input id="fP1" value="${esc(v1||'')}"></label>${lbl2?`<label class="f" style="flex:1">${lbl2}<input id="fP2" value="${esc(v2||'')}"></label>`:''}</div><label class="f" style="margin-top:8px">Observaciones<textarea id="fObs"></textarea></label>`;}
-function setObs(r){if(r&&$('fObs'))$('fObs').value=r.obs||'';}
-function botones(col,id,fn){return `<div class="mfoot">${id?`<button class="btn red sm edit-only" onclick="cerrarModal();borrarRegistro('${col}','${id}')">Eliminar</button><div class="sp"></div>`:''}<button class="btn sec" onclick="cerrarModal()">Cancelar</button><button class="btn" onclick="${fn}('${id||''}')">Guardar</button></div>`;}
-function tablaRegistros(col,regs,cols,extraAcc){
-  if(!regs.length)return '<div class="empty">Sin registros en el periodo.</div>';
-  return `<table><tr><th>Folio</th><th>Fecha y hora</th>${cols.map(c=>`<th${c.n?' class="n"':''}>${c.t}</th>`).join('')}<th></th></tr>
-  ${regs.sort((a,b)=>tsDe(a)<tsDe(b)?1:-1).map(r=>`<tr><td><b>${esc(r.folio)}</b></td><td>${fFecha(r.fecha)} ${esc(r.hora||'')}</td>${cols.map(c=>`<td${c.n?' class="n"':''}>${c.f(r)}</td>`).join('')}
-  <td style="white-space:nowrap"><button class="btn sec sm" onclick="imprimirRegistro('${col}','${r.id}')">🖨</button> ${extraAcc?extraAcc(r):''}</td></tr>`).join('')}</table>`;
+function abrirRecepcion(id){
+  FOTO_MODAL=null;
+  if(!requiere(id?'admin':'vig'))return;const r=id?DB.recepciones.find(x=>x.id===id):null;const S=calcularSaldo();
+  const mot=r?r.motivos||[]:[];
+  abrirModal(`<h2>${r?'Editar recepción '+esc(r.folio):'Nueva recepción de ropa limpia'}</h2>
+  <div class="row">${htmlFH('r',r)}
+  <label class="f">Remisión del proveedor<input id="rRem" value="${esc(r?r.remisionProv:'')}"></label></div>
+  <div class="note">Según nota = lo que dice la nota de lavandería. Vigilancia cuenta lo que llegó: aceptadas + rechazadas debe coincidir con la nota. Aceptadas descuentan el saldo en lavandería; rechazadas se devuelven al proveedor y siguen pendientes.</div>
+  ${gridHTML([{k:'n',label:'Según nota'},{k:'a',label:'Aceptadas'},{k:'r',label:'Rechazadas'}],r&&r.items)}
+  <div style="margin-top:10px"><div class="muted" style="margin-bottom:4px">Motivos de rechazo</div><div class="checks">${MOTIVOS.map(m=>`<label><input type="checkbox" class="mot" value="${m}" ${mot.includes(m)?'checked':''}> ${m}</label>`).join('')}</div></div>
+  <div class="row" style="margin-top:10px"><label class="f" style="flex:1">Recibió y contó (Vigilancia)<input id="rRecibio" value="${esc(r?r.recibio:'')}"></label><label class="f" style="flex:1">Entregó (proveedor)<input id="rEntrego" value="${esc(r?r.entrego:'')}"></label></div>
+  ${htmlDifNota('Recepción')}${htmlFoto(r)}
+  <label class="f" style="margin-top:8px">Observaciones (opcional)<textarea id="rObs">${esc(r?r.obs:'')}</textarea></label>
+  <div class="mfoot"><button class="btn sec" onclick="cerrarModal()">Cancelar</button><button class="btn" onclick="guardarRecepcion('${r?r.id:''}')">Guardar recepción</button></div>`);
+  // Columna informativa de saldo
+  document.querySelectorAll('#modalBox table tr').forEach(tr=>{const inp=tr.querySelector('input[data-k="a"]');const th=tr.querySelector('th');
+    if(th&&!tr.dataset.s){tr.insertAdjacentHTML('beforeend','<th class="n">En lavandería</th>');tr.dataset.s=1;}
+    else if(inp){const s=S[inp.dataset.p];tr.insertAdjacentHTML('beforeend',`<td class="n muted">${s?fmt(s.saldo):0}</td>`);}
+    else if(tr.classList.contains('tot'))tr.insertAdjacentHTML('beforeend','<td></td>');});
+  document.querySelectorAll('#modalBox tr.grp td').forEach(td=>td.colSpan=5);
+  totalGrid();
 }
-
-/* ================= ROPA SUCIA ================= */
-function renderSucia(){
-  const m=$('fSucMes').value;const regs=DB.sucia.filter(r=>!m||enRango(r,m));
-  $('tabSucia').innerHTML=tablaRegistros('sucia',regs,[{t:'Origen',f:r=>esc(ubicNombre(r.origen))},{t:'Entregó',f:r=>esc(r.entrega||'')},{t:'Recibió',f:r=>esc(r.recibe||'')},{t:'Piezas',n:1,f:r=>fmt(sumItems(r.items))},{t:'Detalle',f:r=>`<span class="muted">${esc(resumen(r.items,k=>prenda(k).nombre))}</span>`}],
-    r=>`<button class="btn sec sm acc-lav" onclick="abrirSucia('${r.id}')">✏️</button>`);
-  /* consumo real vs calculado */
-  const mm=m||mesDe(hoy());const t=sumaCol('sucia',mm);const dias=diasOperacion(mm);
-  const porDia={};DB.sucia.filter(r=>enRango(r,mm)).forEach(r=>{porDia[r.fecha]=porDia[r.fecha]||{};Object.keys(r.items).forEach(p=>porDia[r.fecha][p]=(porDia[r.fecha][p]||0)+num(r.items[p]));});
-  const maxDia=p=>Math.max(0,...Object.values(porDia).map(d=>num(d[p])));
-  $('tabConsumo').innerHTML=`<table><tr><th>Prenda</th><th class="n">Recibida en el mes</th><th class="n">Promedio por día</th><th class="n">Día con más</th><th class="n">Calculado (día alto)</th></tr>
-  ${['piso','qx'].map(g=>`<tr class="grp"><td colspan="5">${GRUPO_NOMBRE[g]}</td></tr>`+prendas(g).map(p=>`<tr><td>${esc(p.nombre)}</td><td class="n">${fmt(t[p.id])}</td><td class="n">${fmt(num(t[p.id])/dias,1)}</td><td class="n">${fmt(maxDia(p.id))}</td><td class="n muted">${fmt(p.consumo,1)}</td></tr>`).join('')).join('')}</table>`;
-}
-function abrirSucia(id){
-  if(!requiere('lav'))return;const r=id?DB.sucia.find(x=>x.id===id):null;
-  abrirModal(`<h2>${r?'Editar '+esc(r.folio):'Recepción de ropa sucia en lavandería'}</h2>${htmlFH(r)}
-  <div class="row" style="margin-top:8px"><label class="f">Servicio de origen<select id="fOrig" onchange="cambiarGrupoSucia()">${opcionesServ(r?r.origen:'hosp',[['qxropa','Quirófano (ropa quirúrgica)']])}</select></label></div>
-  <div id="gridSuc" style="margin-top:8px"></div>${piePersona('Entregó (camillero)',r&&r.entrega,'Recibió (lavandería)',r&&r.recibe)}${botones('sucia',id,'guardarSucia')}`);
-  setObs(r);window._valSuc=r?r.items:null;cambiarGrupoSucia();
-}
-function cambiarGrupoSucia(){const g=$('fOrig').value==='qxropa'?'qx':'piso';$('gridSuc').innerHTML=gridHTML(lista(prendas(g)),window._valSuc);totGrid();}
-function guardarSucia(id){
-  const it=leerGrid();if(!Object.keys(it).length){toast('Capture al menos una pieza');return;}
-  const r=id?DB.sucia.find(x=>x.id===id):null;const fh=leerFH();
-  guardarRegistro('sucia',{id:r?r.id:uid(),folio:r?r.folio:siguienteFolio('sucia',fh.fecha),...fh,origen:$('fOrig').value,items:it,entrega:$('fP1').value.trim(),recibe:$('fP2').value.trim(),obs:$('fObs').value.trim(),rol:ROL});
-  cerrarModal();toast('Ropa sucia registrada');
-}
-
-/* ================= LAVADO ================= */
-function renderLavado(){
-  const ant=antiguedadLav();const H=DB.config.params.horasAlerta;
-  const filas=Object.keys(ant).filter(p=>ant[p].pend).map(p=>({p,...ant[p]}));
-  $('tabProceso').innerHTML=filas.length?`<table><tr><th>Prenda</th><th class="n">En proceso</th><th class="n">Más de ${H} h</th><th>Entrada pendiente más antigua</th></tr>${filas.map(f=>`<tr><td>${esc(prenda(f.p).nombre)}</td><td class="n">${fmt(f.pend)}</td><td class="n ${f.viejas?'bad':''}">${fmt(f.viejas)}</td><td>${f.masAnt?fFecha(f.masAnt.slice(0,10))+' '+f.masAnt.slice(11):'—'}</td></tr>`).join('')}</table>`:'<div class="empty">No hay ropa en proceso.</div>';
-  const m=$('fLavMes').value;const regs=DB.lavados.filter(r=>!m||enRango(r,m));
-  $('tabLavados').innerHTML=tablaRegistros('lavados',regs,[{t:'Destino',f:r=>esc(ubicNombre(r.destino))},{t:'Responsable',f:r=>esc(r.responsable||'')},{t:'Piezas',n:1,f:r=>fmt(sumItems(r.items))},{t:'Detalle',f:r=>`<span class="muted">${esc(resumen(r.items,k=>prenda(k).nombre))}</span>`}],
-    r=>`<button class="btn sec sm acc-lav" onclick="abrirLavado('${r.id}')">✏️</button>`);
-}
-function abrirLavado(id){
-  if(!requiere('lav'))return;const r=id?DB.lavados.find(x=>x.id===id):null;
-  abrirModal(`<h2>${r?'Editar '+esc(r.folio):'Ropa lavada lista'}</h2>${htmlFH(r)}
-  <div class="row" style="margin-top:8px"><label class="f">Destino<select id="fDest" onchange="cambiarGrupoLav()"><option value="almacen">Almacén central (ropa de cama y paciente)</option><option value="crudo">CEyE: ropa quirúrgica en crudo</option></select></label></div>
-  <div class="note">Registre solo la ropa que ya pasó la revisión de calidad. La que se vuelve a lavar se queda en proceso; la que no sirve se registra como baja.</div>
-  <div id="gridLav"></div>${piePersona('Responsable de lavandería',r&&r.responsable)}${botones('lavados',id,'guardarLavado')}`);
-  if(r)$('fDest').value=r.destino;setObs(r);window._valLav=r?r.items:null;cambiarGrupoLav();
-}
-function cambiarGrupoLav(){const g=$('fDest').value==='crudo'?'qx':'piso';const S=saldo('lav').items;$('gridLav').innerHTML=gridHTML(lista(prendas(g)),window._valLav,{titulo:'En proceso',f:p=>S[p]||0});totGrid();}
-function guardarLavado(id){
-  const it=leerGrid();if(!Object.keys(it).length){toast('Capture al menos una pieza');return;}
-  const r=id?DB.lavados.find(x=>x.id===id):null;const fh=leerFH();
-  guardarRegistro('lavados',{id:r?r.id:uid(),folio:r?r.folio:siguienteFolio('lavados',fh.fecha),...fh,destino:$('fDest').value,items:it,responsable:$('fP1').value.trim(),obs:$('fObs').value.trim(),rol:ROL});
-  cerrarModal();toast('Ropa lavada registrada');
+function guardarRecepcion(id){
+  if(!requiere(id?'admin':'vig'))return;
+  const items=leerGrid();if(!Object.keys(items).length){toast('Capture al menos una pieza');return;}
+  const prevR=id?DB.recepciones.find(x=>x.id===id):null;const FH=leerFH('r',prevR);const fecha=FH.fecha;if(!fecha){toast('Indique la fecha');return;}
+  const motivos=[...document.querySelectorAll('.mot:checked')].map(c=>c.value);
+  const rech=Object.values(items).reduce((s,v)=>s+num(v.r),0);
+  if(rech>0&&!motivos.length){toast('Marque el motivo del rechazo');return;}
+  const prev=id?DB.recepciones.find(x=>x.id===id):null;
+  const rec={id:prev?prev.id:uid(),folio:prev?prev.folio:siguienteFolio('recepciones','REC',fecha),tipo:'Recepción',fecha,hora:FH.hora,registrado:FH.registrado,tardia:FH.tardia,remisionProv:$('rRem').value.trim(),
+    items,motivos,recibio:$('rRecibio').value.trim(),entrego:$('rEntrego').value.trim(),obs:$('rObs').value.trim()};
+  rec.resumen=resumenItems(items,v=>num(v.a)+(num(v.r)?' (+'+num(v.r)+' rech.)':''));
+  if(!validarNota(rec,'Vigilancia',prevR))return;
+  // Aviso si se acepta más de lo que está en lavandería
+  const S=calcularSaldo();const exceso=Object.keys(items).filter(p=>{const prevA=prev&&prev.items[p]?num(prev.items[p].a):0;return num(items[p].a)-prevA>(S[p]?S[p].saldo:0);});
+  if(exceso.length&&!confirm('Se están aceptando más piezas de las que hay en lavandería en: '+exceso.map(p=>prenda(p).nombre).join(', ')+'.\n\nRevise el conteo o registre un saldo inicial. ¿Guardar de todos modos?'))return;
+  guardarRegistro('recepciones',rec,FOTO_MODAL);FOTO_MODAL=null;cerrarModal();toast('Recepción '+rec.folio+' guardada');
 }
 
-/* ================= ALMACÉN Y RESURTIDO ================= */
-function renderAlmacen(){
-  const s=saldo('almacen');const A=s.items;
-  $('almInfo').innerHTML=s.conteo?`Último conteo físico: <b>${fFecha(s.conteo.fecha)} ${esc(s.conteo.hora)}</b> (${esc(s.conteo.folio)})`:'Sin conteo físico: la existencia parte de las altas de inventario.';
-  $('tabAlmacen').innerHTML=`<table><tr><th>Prenda</th><th class="n">Existencia</th><th class="n">Mínimo (1 día alto)</th><th>Estado</th></tr>${prendas('piso').map(p=>{const v=num(A[p.id]);const mn=Math.ceil(num(p.consumo));
-    return `<tr><td>${esc(p.nombre)}</td><td class="n">${fmt(v)}</td><td class="n muted">${fmt(mn)}</td><td>${v<0?pill('Revisar: negativo','bad'):mn&&v<mn?pill('Bajo el mínimo','bad'):pill('Suficiente','ok')}</td></tr>`;}).join('')}</table>`;
-  const m=$('fSurMes').value;const regs=DB.surtidos.filter(r=>!m||enRango(r,m));
-  $('tabSurtidos').innerHTML=tablaRegistros('surtidos',regs,[{t:'Servicio',f:r=>esc(ubicNombre(r.servicio))},{t:'Entregó',f:r=>esc(r.entrega||'')},{t:'Recibió',f:r=>esc(r.recibe||'')},{t:'Piezas entregadas',n:1,f:r=>fmt(sumItems(r.items))}],
-    r=>`<button class="btn sec sm acc-lav" onclick="abrirSurtido('${r.id}')">✏️</button>`);
+/* ---------- Paliativos: existencia, resurtidos y movimientos ---------- */
+function renderPaliativos(){
+  const X=existenciaPaliativos();const m=$('fPalMes').value;const surMes={};
+  DB.surtidos.filter(s=>mesDe(s.fecha)===mesDe(hoy())).forEach(s=>Object.keys(s.items||{}).forEach(p=>surMes[p]=(surMes[p]||0)+num(s.items[p])));
+  const b=X.base;let difTot=0;
+  if(b&&b.teorico){Object.keys({...b.items,...b.teorico}).forEach(p=>difTot+=num((b.items||{})[p])-num(b.teorico[p]));}
+  $('palInfo').innerHTML=b?`Último conteo físico: <b>&nbsp;${fFecha(b.fecha)} ${esc(b.hora||'')}</b>&nbsp;(${esc(b.folio)})${b.teorico?` · diferencia contra lo esperado: <b class="${difTot?'bad':''}">&nbsp;${difTot>0?'+':''}${fmt(difTot)} pzas</b>`:''}`:'<span class="bad">Aún no hay conteo físico de Paliativos: la existencia parte de cero. Registre un conteo para fijar el punto de partida.</span>';
+  let T={b:0,e:0,s:0,x:0,m:0};
+  $('tabPaliativos').innerHTML=`<table><tr><th>Prenda</th><th class="n">Último conteo físico</th><th class="n">+ Entró limpia</th><th class="n">− Surtido a servicios</th><th class="n">Existencia</th><th class="n">Surtido este mes</th></tr>${prendasActivas().map(p=>{
+    const bb=b?num((b.items||{})[p.id]):0,e=num(X.ent[p.id]),s=num(X.sal[p.id]),x=num(X.items[p.id]),mm=num(surMes[p.id]);T.b+=bb;T.e+=e;T.s+=s;T.x+=x;T.m+=mm;
+    return `<tr><td>${esc(p.nombre)}</td><td class="n">${b?fmt(bb):'—'}</td><td class="n">${fmt(e)}</td><td class="n">${fmt(s)}</td><td class="n ${x<0?'bad':''}"><b>${fmt(x)}</b></td><td class="n">${fmt(mm)}</td></tr>`;}).join('')}
+    <tr class="tot"><td>Total</td><td class="n">${b?fmt(T.b):'—'}</td><td class="n">${fmt(T.e)}</td><td class="n">${fmt(T.s)}</td><td class="n">${fmt(T.x)}</td><td class="n">${fmt(T.m)}</td></tr></table>
+    ${Object.values(X.items).some(v=>v<0)?'<div class="alert">Hay existencias negativas: se surtió más de lo que había registrado. Revise que todas las recepciones estén capturadas o haga un conteo físico de Paliativos.</div>':''}`;
+  const mov=[];
+  DB.recepciones.filter(r=>!m||mesDe(r.fecha)===m).forEach(r=>{const t=totalRec(r,'a');if(t)mov.push({ts:tsDe(r),r,tipo:'Entrada',txt:'Recepción de lavandería',q:t,det:resumenItems(r.items,v=>num(v.a)),col:'recepciones'});});
+  DB.surtidos.filter(s=>!m||mesDe(s.fecha)===m).forEach(s=>mov.push({ts:tsDe(s),r:s,tipo:'Salida',txt:'Resurtido a '+servicio(s.servicio).nombre,q:-totalSimple(s),det:s.resumen||'',col:'surtidos'}));
+  DB.conteos.filter(c=>c.servicio==='roperia'&&(!m||mesDe(c.fecha)===m)).forEach(c=>{let d=0;if(c.teorico)Object.keys({...c.items,...c.teorico}).forEach(p=>d+=num((c.items||{})[p])-num(c.teorico[p]));mov.push({ts:tsDe(c),r:c,tipo:'Conteo',txt:'Conteo físico'+(c.teorico?' (diferencia '+(d>0?'+':'')+d+')':''),q:totalSimple(c),det:c.resumen||'',col:'conteos'});});
+  mov.sort((a,b)=>b.ts.localeCompare(a.ts));
+  $('tabKardex').innerHTML=mov.length?`<table><tr><th>Fecha</th><th>Folio</th><th>Movimiento</th><th class="n">Piezas</th><th>Detalle</th><th>Responsable</th><th></th></tr>${mov.map(x=>`<tr><td>${fFecha(x.r.fecha)} ${esc(x.r.hora||'')}${marcaTardia(x.r)}</td><td><b>${esc(x.r.folio)}</b></td><td>${x.tipo==='Entrada'?'<span class="pill ok">Entrada</span>':x.tipo==='Salida'?'<span class="pill warn">Salida</span>':'<span class="pill">Conteo</span>'} ${esc(x.txt)}</td>
+    <td class="n">${x.tipo==='Conteo'?fmt(x.q):(x.q>0?'+':'')+fmt(x.q)}</td><td class="muted">${esc(x.det)}</td><td>${esc(x.r.entrego&&x.col==='surtidos'?x.r.entrego:(x.r.recibio||x.r.conto||''))}</td>
+    <td style="white-space:nowrap">${x.col==='surtidos'?`<button class="btn sec sm" onclick="imprimirSurtido('${x.r.id}')">🖨 Vale</button> <button class="btn sec sm edit-only" onclick="abrirSurtido(null,'${x.r.id}')">Editar</button> <button class="btn red sm edit-only" onclick="borrarRegistro('surtidos','${x.r.id}')">✕</button>`:''}${x.col==='conteos'?`<button class="btn sec sm edit-only" onclick="abrirConteo('${x.r.id}')">Editar</button> <button class="btn red sm edit-only" onclick="borrarRegistro('conteos','${x.r.id}')">✕</button>`:''}</td></tr>`).join('')}</table>`:'<div class="empty">Sin movimientos en el periodo.</div>';
 }
-function abrirSurtido(id,sid){
-  if(!requiere('lav'))return;const r=id?DB.surtidos.find(x=>x.id===id):null;
-  abrirModal(`<h2>${r?'Editar '+esc(r.folio):'Resurtir un servicio'}</h2>${htmlFH(r)}
-  <div class="row" style="margin-top:8px"><label class="f">Servicio<select id="fServ" onchange="tablaSurtido()">${opcionesServ(r?r.servicio:(sid||'hosp'))}</select></label></div>
-  <div class="note">Cuente lo que hay en el gabinete; la app calcula lo que falta para completar el stock autorizado. Puede ajustar la cantidad a entregar.</div>
-  <div id="gridSur"></div>${piePersona('Entregó (lavandería)',r&&r.entrega,'Recibió (servicio)',r&&r.recibe)}${botones('surtidos',id,'guardarSurtido')}`);
-  setObs(r);window._valSur=r?r.items:null;tablaSurtido();
+function abrirSurtido(sid,id){
+  if(!requiere(id?'admin':'sup'))return;const s=id?DB.surtidos.find(x=>x.id===id):null;
+  sid=s?s.servicio:(sid||serviciosStock()[0].id);
+  abrirModal(`<h2>${s?'Editar resurtido '+esc(s.folio):'Resurtir un servicio desde Paliativos'}</h2>
+  <div class="row"><label class="f">Servicio<select id="sServ" onchange="tablaSurtido()" ${s?'disabled':''}>${serviciosStock().map(x=>`<option value="${x.id}" ${x.id===sid?'selected':''}>${esc(x.nombre)}</option>`).join('')}</select></label>
+  ${htmlFH('s',s)}</div>
+  <div class="note">1) Cuente el gabinete del servicio. 2) La app calcula lo que falta para el stock y propone surtirlo, sin pasar de lo que hay en Paliativos. 3) Ajuste “Surtido” si entrega otra cantidad.</div>
+  <div class="tw" id="sTabla"></div>
+  <div class="row" style="margin-top:10px"><label class="f" style="flex:1">Surtió (Supervisión de Enfermería)<input id="sEntrego" value="${esc(s?s.entrego:'')}"></label><label class="f" style="flex:1">Recibió (servicio)<input id="sRecibio" value="${esc(s?s.recibio:'')}"></label></div>
+  <label class="f" style="margin-top:8px">Observaciones<textarea id="sObs">${esc(s?s.obs:'')}</textarea></label>
+  <div class="mfoot"><button class="btn sec" onclick="cerrarModal()">Cancelar</button><button class="btn" onclick="guardarSurtido('${s?s.id:''}')">Guardar resurtido</button></div>`);
+  tablaSurtido(s);
 }
-function tablaSurtido(){
-  const sid=$('fServ').value;const st=DB.config.stock[sid]||{};const A=saldo('almacen').items;const V=window._valSur||{};
-  const ps=prendas('piso').filter(p=>num(st[p.id])||V[p.id]);
-  $('gridSur').innerHTML=ps.length?`<div class="tw"><table class="grid"><tr><th>Prenda</th><th class="n">Stock autorizado</th><th class="n">Hay en gabinete</th><th class="n">A entregar</th><th class="n">En almacén</th></tr>
-  ${ps.map(p=>`<tr><td>${esc(p.nombre)}</td><td class="n">${fmt(st[p.id])}</td><td class="n"><input type="number" min="0" data-c="${p.id}" value="${V[p.id]?V[p.id].c:''}" oninput="sugerir('${p.id}',${num(st[p.id])})"></td><td class="n"><input type="number" min="0" data-e="${p.id}" value="${V[p.id]?V[p.id].e:''}" oninput="totSur()"></td><td class="n muted">${fmt(A[p.id])}</td></tr>`).join('')}
-  <tr class="tot"><td>Total</td><td class="n">${fmt(ps.reduce((s,p)=>s+num(st[p.id]),0))}</td><td></td><td class="n" id="gTot">0</td><td></td></tr></table></div>`:'<div class="empty">Este servicio no tiene stock autorizado. Configúrelo en la pestaña Servicios.</div>';
-  totSur();
+function tablaSurtido(s){
+  const sid=$('sServ').value;const X=existenciaPaliativos(null,null);
+  // al editar, lo ya surtido en este registro vuelve a estar disponible
+  if(s)Object.keys(s.items||{}).forEach(p=>X.items[p]=num(X.items[p])+num(s.items[p]));
+  const ps=prendasActivas().filter(p=>dotacionDe(sid,p.id).efectiva>0||(s&&(num((s.items||{})[p.id])||num((s.conteo||{})[p.id]))));
+  $('sTabla').innerHTML=`<table><tr><th>Prenda</th><th class="n">Stock</th><th class="n">Conteo gabinete</th><th class="n">Falta</th><th class="n">En Paliativos</th><th class="n">Surtido</th></tr>${ps.map(p=>{const d=dotacionDe(sid,p.id).efectiva;
+    const cv=s?((s.conteo||{})[p.id]??''):'';const sv=s?num((s.items||{})[p.id]):'';
+    return `<tr data-sp="${p.id}" data-stock="${d}" data-disp="${Math.max(num(X.items[p.id]),0)}"><td>${esc(p.nombre)}</td><td class="n">${fmt(d)}</td><td class="n"><input type="number" min="0" class="sCnt" value="${cv}" oninput="calcSurtido(this)"></td><td class="n sFalta">—</td><td class="n muted">${fmt(Math.max(num(X.items[p.id]),0))}</td><td class="n"><input type="number" min="0" class="sSur" value="${sv===0?'':sv}" ${s?'data-man="1"':''} oninput="this.dataset.man=1;totSurtido()"></td></tr>`;}).join('')}
+    <tr class="tot"><td>Total</td><td class="n">${fmt(ps.reduce((a,p)=>a+dotacionDe(sid,p.id).efectiva,0))}</td><td class="n" id="sTotCnt">0</td><td class="n" id="sTotFalta">0</td><td></td><td class="n" id="sTotSur">0</td></tr></table>`;
+  document.querySelectorAll('#sTabla .sCnt').forEach(i=>calcSurtido(i,true));
 }
-function sugerir(p,st){const c=document.querySelector(`#modalBox input[data-c="${p}"]`);const e=document.querySelector(`#modalBox input[data-e="${p}"]`);if(c.value!=='')e.value=Math.max(0,st-num(c.value));totSur();}
-function totSur(){let t=0;document.querySelectorAll('#modalBox input[data-e]').forEach(i=>t+=num(i.value));const e=$('gTot');if(e)e.textContent=fmt(t);}
+function calcSurtido(inp,inicial){
+  const tr=inp.closest('tr');const stock=num(tr.dataset.stock),disp=num(tr.dataset.disp);
+  if(inp.value===''){tr.querySelector('.sFalta').textContent='—';if(!inicial&&!tr.querySelector('.sSur').dataset.man)tr.querySelector('.sSur').value='';totSurtido();return;}
+  const falta=Math.max(stock-num(inp.value),0);tr.querySelector('.sFalta').innerHTML=falta?'<b>'+fmt(falta)+'</b>':'0';
+  const sur=tr.querySelector('.sSur');if(!sur.dataset.man)sur.value=Math.min(falta,disp)||'';
+  totSurtido();
+}
+function totSurtido(){let c=0,f=0,s=0;document.querySelectorAll('#sTabla tr[data-sp]').forEach(tr=>{const ci=tr.querySelector('.sCnt').value;if(ci!==''){c+=num(ci);f+=Math.max(num(tr.dataset.stock)-num(ci),0);}s+=num(tr.querySelector('.sSur').value);});
+  $('sTotCnt').textContent=fmt(c);$('sTotFalta').textContent=fmt(f);$('sTotSur').textContent=fmt(s);}
 function guardarSurtido(id){
-  const it={};let falta=false;
-  document.querySelectorAll('#modalBox input[data-c]').forEach(i=>{const p=i.dataset.c;const e=document.querySelector(`#modalBox input[data-e="${p}"]`);
-    if(i.value===''&&e.value==='')return;if(i.value==='')falta=true;it[p]={c:Math.max(0,Math.round(num(i.value))),e:Math.max(0,Math.round(num(e.value)))};});
-  if(falta){toast('Capture cuánto hay en el gabinete de cada prenda que entrega');return;}
-  if(!Object.keys(it).length){toast('Capture el conteo del gabinete');return;}
-  const r=id?DB.surtidos.find(x=>x.id===id):null;const fh=leerFH();
-  guardarRegistro('surtidos',{id:r?r.id:uid(),folio:r?r.folio:siguienteFolio('surtidos',fh.fecha),...fh,servicio:$('fServ').value,items:it,entrega:$('fP1').value.trim(),recibe:$('fP2').value.trim(),obs:$('fObs').value.trim(),rol:ROL});
-  cerrarModal();toast('Resurtido registrado');
+  if(!requiere(id?'admin':'sup'))return;
+  const prevS=id?DB.surtidos.find(x=>x.id===id):null;const FH=leerFH('s',prevS);const fecha=FH.fecha;if(!fecha){toast('Indique la fecha');return;}
+  const sid=$('sServ').value;const conteo={},items={};let sinConteo=0,exceso=[];
+  document.querySelectorAll('#sTabla tr[data-sp]').forEach(tr=>{const p=tr.dataset.sp;const ci=tr.querySelector('.sCnt').value;const sv=Math.max(0,Math.round(num(tr.querySelector('.sSur').value)));
+    if(ci==='')sinConteo++;else conteo[p]=Math.max(0,Math.round(num(ci)));if(sv)items[p]=sv;if(sv>num(tr.dataset.disp))exceso.push(prenda(p).nombre);});
+  if(sinConteo&&!confirm(sinConteo+' prendas no tienen conteo del gabinete; se tomarán como 0. ¿Continuar?'))return;
+  if(exceso.length&&!confirm('Se surte más de lo registrado en Paliativos en: '+exceso.join(', ')+'.\n\n¿Falta capturar alguna recepción? ¿Guardar de todos modos?'))return;
+  const prev=id?DB.surtidos.find(x=>x.id===id):null;
+  const rec={id:prev?prev.id:uid(),folio:prev?prev.folio:siguienteFolio('surtidos','SUR',fecha),tipo:'Resurtido',fecha,hora:FH.hora,registrado:FH.registrado,tardia:FH.tardia,servicio:sid,servicioNombre:servicio(sid).nombre,
+    conteo,items,entrego:$('sEntrego').value.trim(),recibio:$('sRecibio').value.trim(),obs:$('sObs').value.trim()};
+  rec.resumen=resumenItems(items,v=>v)||'Sin surtido (servicio completo)';
+  guardarRegistro('surtidos',rec);cerrarModal();toast('Resurtido '+rec.folio+' guardado');
 }
 
-/* ================= CONTEOS FÍSICOS ================= */
-function abrirConteo(id,ubic){
-  if(!requiere('lav'))return;const r=id?DB.conteos.find(x=>x.id===id):null;const u=r?r.ubic:(ubic||'almacen');
-  const opts=[['almacen',UBIC_FIJAS.almacen],['lav',UBIC_FIJAS.lav],['crudo',UBIC_FIJAS.crudo],['anaquel',UBIC_FIJAS.anaquel]].concat(servicios().map(s=>[s.id,'Gabinete de '+s.nombre]));
-  abrirModal(`<h2>${r?'Editar '+esc(r.folio):'Conteo físico'}</h2>${htmlFH(r)}
-  <div class="row" style="margin-top:8px"><label class="f">Ubicación<select id="fUbic" onchange="gridConteo()">${opts.map(([v,t])=>`<option value="${v}" ${v===u?'selected':''}>${esc(t)}</option>`).join('')}</select></label></div>
-  <div class="note">El conteo reemplaza la existencia calculada de esa ubicación. Capture todas las prendas; lo que deje en blanco cuenta como cero.</div>
-  <div id="gridCon"></div>${piePersona('Contó',r&&r.responsable)}${botones('conteos',id,'guardarConteo')}`);
-  setObs(r);window._valCon=r?r.items:null;gridConteo();
+/* ---------- Saldo y ajustes ---------- */
+function renderSaldo(){
+  const S=calcularSaldo();const P=DB.config.params;
+  const ids=prendasActivas().map(p=>p.id).filter(p=>S[p]).concat(Object.keys(S).filter(p=>!prendasActivas().some(x=>x.id===p)));
+  if(!ids.length){$('tabSaldo').innerHTML='<div class="empty">Aún no hay movimientos.</div>';}
+  else{let T={env:0,ini:0,acep:0,rech:0,fal:0,saldo:0,venc:0};
+  $('tabSaldo').innerHTML=`<table><tr><th>Prenda</th><th class="n">Enviadas</th><th class="n">Saldo inicial</th><th class="n">Aceptadas</th><th class="n">Rechazadas</th><th class="n">Faltantes</th><th class="n">Saldo</th><th>Pendiente desde</th><th class="n">Días</th><th class="n">&gt; ${P.diasAlerta} días</th></tr>${ids.map(p=>{const o=S[p];
+    T.env+=o.env;T.ini+=o.ini;T.acep+=o.acep;T.rech+=o.rech;T.fal+=o.fal;T.saldo+=o.saldo;T.venc+=o.vencidas;
+    return `<tr><td>${esc(prenda(p).nombre)}</td><td class="n">${fmt(o.env)}</td><td class="n">${fmt(o.ini)}</td><td class="n">${fmt(o.acep)}</td><td class="n">${fmt(o.rech)}</td><td class="n">${fmt(o.fal)}</td><td class="n ${o.saldo<0?'bad':''}"><b>${fmt(o.saldo)}</b></td><td>${o.masAntigua?fFecha(o.masAntigua):'—'}</td><td class="n">${diasPill(o.dias,o.saldo)}</td><td class="n ${o.vencidas?'bad':''}">${fmt(o.vencidas)}</td></tr>`;}).join('')}
+    <tr class="tot"><td>Total</td><td class="n">${fmt(T.env)}</td><td class="n">${fmt(T.ini)}</td><td class="n">${fmt(T.acep)}</td><td class="n">${fmt(T.rech)}</td><td class="n">${fmt(T.fal)}</td><td class="n">${fmt(T.saldo)}</td><td colspan="2"></td><td class="n">${fmt(T.venc)}</td></tr></table>
+    ${ids.some(p=>S[p].saldo<0)?'<div class="alert">Hay saldos negativos: se recibió más de lo enviado. Revise capturas o registre el saldo inicial que el proveedor tenía al arrancar.</div>':''}`;}
+  const A=DB.ajustes.slice().sort((a,b)=>a.fecha<b.fecha?1:-1);
+  $('tabAjustes').innerHTML=A.length?`<table><tr><th>Folio</th><th>Fecha</th><th>Tipo</th><th class="n">Piezas</th><th>Detalle</th><th>Acta / referencia</th><th></th></tr>${A.map(a=>`<tr><td><b>${esc(a.folio)}</b></td><td>${fFecha(a.fecha)}</td><td>${a.tipo==='inicial'?'<span class="pill ok">Saldo inicial</span>':'<span class="pill bad">Faltante reconocido</span>'}</td><td class="n">${fmt(totalSimple(a))}</td><td class="muted">${esc(a.resumen||'')}</td><td>${esc(a.acta||'')}</td><td style="white-space:nowrap"><button class="btn sec sm edit-only" onclick="abrirAjuste('${a.tipo}','${a.id}')">Editar</button> <button class="btn red sm edit-only" onclick="borrarRegistro('ajustes','${a.id}')">✕</button></td></tr>`).join('')}</table>`:'<div class="empty">Sin ajustes registrados.</div>';
 }
-function gridConteo(){
-  const u=$('fUbic').value;let ls,extra;
-  if(u==='anaquel'){const S=saldo('anaquel').items;ls=lista(bultos(),'bulto');extra={titulo:'Según la app',f:b=>S[b]||0};}
-  else{const g=(u==='crudo')?'qx':(u==='lav'?null:'piso');const S=saldo(u).items;ls=lista(u==='lav'?prendas():prendas(g));
-    if(u==='almacen'||u==='lav'||u==='crudo')extra={titulo:'Según la app',f:p=>S[p]||0};else{const st=DB.config.stock[u]||{};ls=lista(ls.filter(p=>num(st[p.id])));extra={titulo:'Stock autorizado',f:p=>st[p]||0};}}
-  $('gridCon').innerHTML=gridHTML(ls,window._valCon,extra);totGrid();
+function abrirAjuste(tipo,id){
+  if(!requiere('admin'))return;const a=id?DB.ajustes.find(x=>x.id===id):null;const vals={};if(a)Object.keys(a.items).forEach(p=>vals[p]={n:a.items[p]});
+  const ini=tipo==='inicial';
+  abrirModal(`<h2>${ini?'Saldo inicial en lavandería':'Faltante reconocido por el proveedor'}</h2>
+  <div class="note">${ini?'Úselo una sola vez al arrancar: piezas de CMGA que ya estaban en poder del proveedor antes de empezar a registrar envíos.':'Piezas que, tras la conciliación, el proveedor reconoce como perdidas o dañadas por su proceso. Descuentan el saldo y cuentan en el indicador de faltantes.'}</div>
+  <div class="row"><label class="f">Fecha<input type="date" id="aFecha" value="${a?a.fecha:hoy()}"></label><label class="f" style="flex:1">${ini?'Referencia':'Número de acta de conciliación'}<input id="aActa" value="${esc(a?a.acta:'')}"></label></div>
+  ${gridHTML([{k:'n',label:'Piezas'}],vals)}
+  <label class="f" style="margin-top:8px">Observaciones<textarea id="aObs">${esc(a?a.obs:'')}</textarea></label>
+  <div class="mfoot"><button class="btn sec" onclick="cerrarModal()">Cancelar</button><button class="btn ${ini?'':'red'}" onclick="guardarAjuste('${tipo}','${a?a.id:''}')">Guardar</button></div>`);
+  totalGrid();
 }
+function guardarAjuste(tipo,id){
+  const g=leerGrid();const items={};Object.keys(g).forEach(p=>items[p]=num(g[p].n));if(!Object.keys(items).length){toast('Capture al menos una pieza');return;}
+  const fecha=$('aFecha').value;if(!fecha){toast('Indique la fecha');return;}
+  if(tipo!=='inicial'&&!$('aActa').value.trim()){toast('Indique el número de acta');return;}
+  const prev=id?DB.ajustes.find(x=>x.id===id):null;
+  const rec={id:prev?prev.id:uid(),folio:prev?prev.folio:siguienteFolio('ajustes',tipo==='inicial'?'INI':'FAL',fecha),tipo,fecha,items,acta:$('aActa').value.trim(),obs:$('aObs').value.trim()};
+  rec.resumen=resumenItems(items,v=>v);
+  guardarRegistro('ajustes',rec);cerrarModal();toast('Ajuste '+rec.folio+' guardado');
+}
+
+/* ---------- Dotación y conteos ---------- */
+function renderDotacion(){
+  const sel=$('selServ');const v=sel.value;
+  sel.innerHTML=serviciosStock().map(s=>`<option value="${s.id}">${esc(s.nombre)}</option>`).join('');
+  sel.value=v&&serviciosStock().some(s=>s.id===v)?v:serviciosStock()[0].id;
+  const s=servicio(sel.value);const c=nivelServicio(s.id);const P=DB.config.params;
+  $('servParams').innerHTML=`<div class="muted">Nivel conocido: <b>${c?fFecha(c.fecha)+' '+esc(c.hora||''):'sin conteo'}</b>${c?' · '+esc(c.fuente):''}</div><div class="sp"></div><button class="btn acc-sup sm" onclick="abrirSurtido('${s.id}')">Resurtir este servicio</button>`;
+  const g=grupos(prendasActivas());let tS=0,tC=0,tF=0;
+  $('tabDotacion').innerHTML=`<table><tr><th>Prenda</th><th class="n">Stock autorizado</th><th class="n">Conteo</th><th class="n">Diferencia</th><th class="n">Cobertura</th><th class="n">Faltaría surtir</th></tr>${Object.keys(g).map(gr=>`<tr class="grp"><td colspan="6">${esc(gr)}</td></tr>`+g[gr].map(p=>{
+    const d=dotacionDe(s.id,p.id).efectiva;const ct=c?num((c.items||{})[p.id]):null;const cob=c&&d?ct/d*100:null;const surtir=c&&d?Math.max(d-ct,0):null;
+    tS+=d;if(ct!==null)tC+=ct;if(surtir)tF+=surtir;
+    return `<tr data-dp="${p.id}"><td>${esc(p.nombre)}</td><td class="n"><input type="number" min="0" step="1" class="dStock" value="${d||''}" ${esAdmin()?'':'disabled'}></td>
+    <td class="n">${ct===null?'—':fmt(ct)}</td><td class="n ${ct!==null&&ct<d?'bad':''}">${ct===null||!d?'—':fmt(ct-d)}</td><td class="n">${cob===null?'—':`<span class="pill ${semaforo(cob,P.metaCobertura,true)}">${fpct(cob)}</span>`}</td><td class="n">${surtir?'<b>'+fmt(surtir)+'</b>':'—'}</td></tr>`;}).join('')).join('')}
+    <tr class="tot"><td>Total</td><td class="n">${fmt(tS)}</td><td class="n">${c?fmt(tC):'—'}</td><td></td><td></td><td class="n">${c?fmt(tF):'—'}</td></tr></table>
+`;
+  // Matriz de stock autorizado
+  const sv=serviciosActivos().filter(x=>prendasActivas().some(p=>dotacionDe(x.id,p.id).efectiva));
+  const tot={};
+  $('tabStockMatriz').innerHTML=`<table><tr><th>Prenda</th>${sv.map(x=>`<th class="n">${esc(x.nombre)}</th>`).join('')}<th class="n">Total</th></tr>${prendasActivas().map(p=>{let t=0;const cells=sv.map(x=>{const d=dotacionDe(x.id,p.id).efectiva;t+=d;tot[x.id]=(tot[x.id]||0)+d;return `<td class="n">${d?fmt(d):'—'}</td>`;}).join('');return `<tr><td>${esc(p.nombre)}</td>${cells}<td class="n"><b>${fmt(t)}</b></td></tr>`;}).join('')}
+    <tr class="tot"><td>Total</td>${sv.map(x=>`<td class="n">${fmt(tot[x.id]||0)}</td>`).join('')}<td class="n">${fmt(Object.values(tot).reduce((a,b)=>a+b,0))}</td></tr></table>`;
+  const L=DB.conteos.slice().sort((a,b)=>(b.fecha+(b.hora||'')).localeCompare(a.fecha+(a.hora||'')));
+  $('tabConteos').innerHTML=L.length?`<table><tr><th>Folio</th><th>Fecha</th><th>Servicio</th><th class="n">Piezas</th><th>Contó</th><th>Supervisó</th><th></th></tr>${L.map(c=>`<tr><td><b>${esc(c.folio)}</b></td><td>${fFecha(c.fecha)} ${esc(c.hora||'')}</td><td>${esc(servicio(c.servicio).nombre)}</td><td class="n">${fmt(totalSimple(c))}</td><td>${esc(c.conto||'')}</td><td>${esc(c.superviso||'')}</td><td style="white-space:nowrap"><button class="btn sec sm edit-only" onclick="abrirConteo('${c.id}')">Editar</button> <button class="btn red sm edit-only" onclick="borrarRegistro('conteos','${c.id}')">✕</button></td></tr>`).join('')}</table>`:'<div class="empty">Sin conteos registrados.</div>';
+}
+function guardarDotacion(){
+  if(!requiere('admin'))return;const sid=$('selServ').value;const s=servicio(sid);
+  const d=DB.config.dotacion[sid]={};
+  document.querySelectorAll('#tabDotacion tr[data-dp]').forEach(tr=>{const v=Math.max(0,Math.round(num(tr.querySelector('.dStock').value)));if(v)d[tr.dataset.dp]={stock:v};});
+  guardarConfig();renderDotacion();toast('Stock de '+s.nombre+' guardado');
+}
+function abrirConteo(id,sidF){
+  if(!requiere(id?'admin':'sup'))return;const c=id?DB.conteos.find(x=>x.id===id):null;const sid=c?c.servicio:(sidF||$('selServ').value||'hosp');const vals={};
+  if(c)Object.keys(c.items).forEach(p=>vals[p]={n:c.items[p]});
+  abrirModal(`<h2>${c?'Editar conteo '+esc(c.folio):'Conteo físico de ropa limpia'}</h2>
+  <div class="row"><label class="f">Servicio<select id="cServ" onchange="dotEnConteo()">${serviciosActivos().map(s=>`<option value="${s.id}" ${s.id===sid?'selected':''}>${esc(s.nombre)}</option>`).join('')}</select></label>
+  ${htmlFH('c',c)}</div>
+  <div class="note">Cuente solo la ropa limpia: en un servicio, la de su gabinete; en Paliativos, toda la existencia. Deje en blanco las prendas que no hay; cuentan como 0. Para resurtir use “+ Resurtir un servicio” en la pestaña Paliativos.</div>
+  ${gridHTML([{k:'n',label:'Conteo'}],vals)}
+  <div class="row" style="margin-top:10px"><label class="f" style="flex:1">Contó<input id="cConto" value="${esc(c?c.conto:'')}"></label><label class="f" style="flex:1">Supervisó<input id="cSup" value="${esc(c?c.superviso:'')}"></label></div>
+  <label class="f" style="margin-top:8px">Observaciones<textarea id="cObs">${esc(c?c.obs:'')}</textarea></label>
+  <div class="mfoot"><button class="btn sec" onclick="cerrarModal()">Cancelar</button><button class="btn" onclick="guardarConteo('${c?c.id:''}')">Guardar conteo</button></div>`);
+  document.querySelectorAll('#modalBox table tr').forEach(tr=>{if(tr.querySelector('th'))tr.insertAdjacentHTML('beforeend','<th class="n">Stock</th>');
+    else if(tr.querySelector('input[data-p]'))tr.insertAdjacentHTML('beforeend','<td class="n muted cdot"></td>');else tr.insertAdjacentHTML('beforeend','<td></td>');});
+  document.querySelectorAll('#modalBox tr.grp td').forEach((td,i)=>{if(i%2===0)td.colSpan=3;else td.remove();});
+  dotEnConteo();totalGrid();
+}
+function dotEnConteo(){const sid=$('cServ').value;document.querySelectorAll('#modalBox tr').forEach(tr=>{const i=tr.querySelector('input[data-p]');const td=tr.querySelector('.cdot');if(i&&td){const d=dotacionDe(sid,i.dataset.p).efectiva;td.textContent=d?fmt(d):'—';}});}
 function guardarConteo(id){
-  const it={};const u=$('fUbic').value;document.querySelectorAll('#modalBox input[data-p]').forEach(i=>it[i.dataset.p]=Math.max(0,Math.round(num(i.value))));
-  const r=id?DB.conteos.find(x=>x.id===id):null;const fh=leerFH();
-  guardarRegistro('conteos',{id:r?r.id:uid(),folio:r?r.folio:siguienteFolio('conteos',fh.fecha),...fh,ubic:u,items:it,responsable:$('fP1').value.trim(),obs:$('fObs').value.trim(),rol:ROL});
-  cerrarModal();toast('Conteo registrado');
+  if(!requiere(id?'admin':'sup'))return;
+  const g=leerGrid();const items={};Object.keys(g).forEach(p=>items[p]=num(g[p].n));
+  const sid=$('cServ').value;const prev=id?DB.conteos.find(x=>x.id===id):null;const FH=leerFH('c',prev);const fecha=FH.fecha;if(!fecha){toast('Indique la fecha');return;}
+  const rec={id:prev?prev.id:uid(),folio:prev?prev.folio:siguienteFolio('conteos','CNT',fecha),tipo:'Conteo',fecha,hora:FH.hora,registrado:FH.registrado,tardia:FH.tardia,servicio:sid,servicioNombre:servicio(sid).nombre,items,conto:$('cConto').value.trim(),superviso:$('cSup').value.trim(),obs:$('cObs').value.trim()};
+  if(sid==='roperia'){const t=existenciaPaliativos(tsDe(rec),rec.id);if(t.base)rec.teorico=t.items;else delete rec.teorico;}
+  rec.resumen=resumenItems(items,v=>v);
+  guardarRegistro('conteos',rec);cerrarModal();toast('Conteo '+rec.folio+' guardado');
 }
 
-/* ================= SERVICIOS ================= */
-function renderServicios(){
-  const P=DB.config.params;const ps=prendas('piso');const st=DB.config.stock;const adm=ROL==='admin';
-  $('tabStock').innerHTML=`<table><tr><th>Servicio</th>${ps.map(p=>`<th class="n">${esc(p.nombre)}</th>`).join('')}<th class="n">Total</th></tr>
-  ${servicios().map(s=>`<tr><td>${esc(s.nombre)}</td>${ps.map(p=>`<td class="n">${adm?`<input type="number" min="0" style="width:58px" data-s="${s.id}" data-p="${p.id}" value="${st[s.id]&&st[s.id][p.id]?st[s.id][p.id]:''}">`:fmt(st[s.id]&&st[s.id][p.id])}</td>`).join('')}<td class="n"><b>${fmt(ps.reduce((a,p)=>a+num(st[s.id]&&st[s.id][p.id]),0))}</b></td></tr>`).join('')}
-  <tr class="tot"><td>Total</td>${ps.map(p=>`<td class="n">${fmt(servicios().reduce((a,s)=>a+num(st[s.id]&&st[s.id][p.id]),0))}</td>`).join('')}<td class="n">${fmt(servicios().reduce((a,s)=>a+ps.reduce((b,p)=>b+num(st[s.id]&&st[s.id][p.id]),0),0))}</td></tr></table>`;
-  const sid=$('selServ').value||servicios()[0].id;
-  $('selServ').innerHTML=opcionesServ(sid);
-  const c=coberturaServicio(sid);const s=st[sid]||{};
-  $('tabNivel').innerHTML=`<div class="muted" style="margin-bottom:6px">Cobertura: ${c.cob===null?'sin registros':pill(fpct(c.cob),sem(c.cob,P.metaCobertura,true))}</div><table><tr><th>Prenda</th><th class="n">Stock autorizado</th><th class="n">Último nivel conocido</th><th>Registrado</th></tr>
-  ${ps.filter(p=>num(s[p.id])).map(p=>{const nv=nivelServicio(sid,p.id);return `<tr><td>${esc(p.nombre)}</td><td class="n">${fmt(s[p.id])}</td><td class="n ${nv&&nv.n<num(s[p.id])?'warn':''}">${nv?fmt(nv.n):'—'}</td><td>${nv?fFecha(nv.f)+' '+nv.ts.slice(11):'<span class="muted">Sin registro</span>'}</td></tr>`;}).join('')}</table>`;
-  const regs=DB.conteos.filter(r=>DB.config.servicios.some(x=>x.id===r.ubic));
-  $('tabConteosServ').innerHTML=tablaRegistros('conteos',regs,[{t:'Servicio',f:r=>esc(ubicNombre(r.ubic))},{t:'Contó',f:r=>esc(r.responsable||'')},{t:'Piezas',n:1,f:r=>fmt(sumItems(r.items))}],r=>`<button class="btn sec sm acc-lav" onclick="abrirConteo('${r.id}')">✏️</button>`);
-}
-function guardarStock(){
-  if(!requiere('admin'))return;document.querySelectorAll('#tabStock input[data-s]').forEach(i=>{const s=i.dataset.s,p=i.dataset.p;DB.config.stock[s]=DB.config.stock[s]||{};const v=Math.max(0,Math.round(num(i.value)));if(v)DB.config.stock[s][p]=v;else delete DB.config.stock[s][p];});
-  guardarConfig();render();toast('Stock autorizado guardado');
-}
-
-/* ================= QUIRÓFANO / CEyE ================= */
-function renderQx(){
-  const A=saldo('anaquel');const an=A.items;
-  $('tabBultos').innerHTML=`<table><tr><th>Bulto</th><th>Contenido</th><th class="n">Stock autorizado</th><th class="n">En anaquel</th><th>Estado</th></tr>
-  ${bultos().map(b=>{const v=num(an[b.id]);return `<tr><td><b>${esc(b.nombre)}</b></td><td class="muted">${esc(resumen(b.comp,k=>prenda(k).nombre))}</td><td class="n">${fmt(b.stock)}</td><td class="n">${fmt(v)}</td><td>${!num(b.stock)?'<span class="muted">Sin stock fijo</span>':v<0?pill('Revisar: negativo','bad'):v<num(b.stock)?pill('Faltan '+(num(b.stock)-v),'warn'):pill('Completo','ok')}</td></tr>`;}).join('')}</table>
-  <div class="muted" style="margin-top:6px">${A.conteo?'Último conteo de anaquel: '+fFecha(A.conteo.fecha)+' '+esc(A.conteo.hora):'Sin conteo de anaquel: registre uno para fijar la existencia inicial.'}</div>`;
-  const C=saldo('crudo');
-  $('tabCrudo').innerHTML=`<table><tr><th>Prenda</th><th class="n">En crudo</th><th class="n">En bultos estériles</th><th class="n">En lavandería</th></tr>${(()=>{const pb=piezasEnAnaquel();const L=saldo('lav').items;return prendas('qx').map(p=>`<tr><td>${esc(p.nombre)}</td><td class="n ${num(C.items[p.id])<0?'bad':''}">${fmt(C.items[p.id])}</td><td class="n">${fmt(pb[p.id])}</td><td class="n">${fmt(L[p.id])}</td></tr>`).join('');})()}</table>`;
-  const m=$('fQxMes').value;
-  $('tabEsteril').innerHTML=tablaRegistros('esteril',DB.esteril.filter(r=>!m||enRango(r,m)),[{t:'Ciclo / lote',f:r=>esc(r.ciclo||'')},{t:'Bultos',n:1,f:r=>fmt(sumItems(r.items))},{t:'Detalle',f:r=>`<span class="muted">${esc(resumen(r.items,k=>bulto(k).nombre))}</span>`}],r=>`<button class="btn sec sm edit-only" onclick="abrirEsteril('${r.id}')">✏️</button>`);
-  $('tabUsos').innerHTML=tablaRegistros('usos',DB.usos.filter(r=>!m||enRango(r,m)),[{t:'Sala / cirugía',f:r=>esc(r.sala||'')},{t:'Bultos',n:1,f:r=>fmt(sumItems(r.items))},{t:'Detalle',f:r=>`<span class="muted">${esc(resumen(r.items,k=>bulto(k).nombre))}</span>`}],r=>`<button class="btn sec sm edit-only" onclick="abrirUso('${r.id}')">✏️</button>`);
-}
-function abrirEsteril(id){
-  if(!requiere('admin'))return;const r=id?DB.esteril.find(x=>x.id===id):null;const an=saldo('anaquel').items;
-  abrirModal(`<h2>${r?'Editar '+esc(r.folio):'Bultos armados y esterilizados'}</h2>${htmlFH(r)}
-  <div class="row" style="margin-top:8px"><label class="f">Ciclo o lote de autoclave<input id="fCiclo" value="${esc(r?r.ciclo:'')}"></label></div>
-  ${gridHTML(lista(bultos(),'bulto'),r?r.items:null,{titulo:'En anaquel',f:b=>an[b]||0})}
-  <div class="note" id="consumoCrudo"></div>${piePersona('Responsable de CEyE',r&&r.responsable)}${botones('esteril',id,'guardarEsteril')}`);
-  setObs(r);window._onGrid=()=>{const it=leerGrid();const need={};Object.keys(it).forEach(b=>{const c=bulto(b).comp;Object.keys(c).forEach(p=>need[p]=(need[p]||0)+c[p]*it[b]);});const C=saldo('crudo').items;
-    const txt=Object.keys(need).map(p=>`${prenda(p).nombre}: ${need[p]}${num(C[p])<need[p]?` <b class="bad">(en crudo hay ${fmt(C[p])})</b>`:''}`).join(' · ');$('consumoCrudo').innerHTML=txt?'Piezas que se toman de la ropa en crudo: '+txt:'Capture los bultos armados para ver las piezas que se toman de la ropa en crudo.';};totGrid();
-}
-function guardarEsteril(id){
-  const it=leerGrid();if(!Object.keys(it).length){toast('Capture al menos un bulto');return;}
-  const r=id?DB.esteril.find(x=>x.id===id):null;const fh=leerFH();window._onGrid=null;
-  guardarRegistro('esteril',{id:r?r.id:uid(),folio:r?r.folio:siguienteFolio('esteril',fh.fecha),...fh,ciclo:$('fCiclo').value.trim(),items:it,responsable:$('fP1').value.trim(),obs:$('fObs').value.trim(),rol:ROL});
-  cerrarModal();toast('Esterilización registrada');
-}
-function abrirUso(id){
-  if(!requiere('admin'))return;const r=id?DB.usos.find(x=>x.id===id):null;const an=saldo('anaquel').items;
-  abrirModal(`<h2>${r?'Editar '+esc(r.folio):'Bultos entregados a quirófano'}</h2>${htmlFH(r)}
-  <div class="row" style="margin-top:8px"><label class="f" style="flex:1">Sala o cirugía (opcional)<input id="fSala" value="${esc(r?r.sala:'')}"></label></div>
-  ${gridHTML(lista(bultos(),'bulto'),r?r.items:null,{titulo:'En anaquel',f:b=>an[b]||0})}${piePersona('Entregó (CEyE)',r&&r.responsable)}${botones('usos',id,'guardarUso')}`);setObs(r);totGrid();
-}
-function guardarUso(id){
-  const it=leerGrid();if(!Object.keys(it).length){toast('Capture al menos un bulto');return;}
-  const r=id?DB.usos.find(x=>x.id===id):null;const fh=leerFH();
-  guardarRegistro('usos',{id:r?r.id:uid(),folio:r?r.folio:siguienteFolio('usos',fh.fecha),...fh,sala:$('fSala').value.trim(),items:it,responsable:$('fP1').value.trim(),obs:$('fObs').value.trim(),rol:ROL});
-  cerrarModal();toast('Salida de bultos registrada');
+/* ---------- Concentrado ---------- */
+function renderConcentrado(){
+  const m=$('selMesConc').value||mesDe(hoy());const C=calcularMes(m);const P=DB.config.params;const I=C.ind;
+  $('concBody').innerHTML=`<div class="kpis">
+    ${kpi('Cumplimiento de devolución',fpct(I.devolucion),'Aceptadas / enviadas · meta ≥ '+P.metaDevolucion+' %',semaforo(I.devolucion,P.metaDevolucion,true))}
+    ${kpi('Rechazo de calidad',fpct(I.rechazo),'Rechazadas / recibidas · meta ≤ '+P.metaRechazo+' %',semaforo(I.rechazo,P.metaRechazo,false))}
+    ${kpi('Faltantes reconocidos',fpct(I.faltantes),'Faltantes / enviadas · meta ≤ '+P.metaFaltantes+' %',semaforo(I.faltantes,P.metaFaltantes,false))}
+    ${kpi('Saldo vencido',fmt(I.vencidas)+' pzas','Más de '+P.diasAlerta+' días al cierre · meta 0',I.vencidas>0?'bad':'ok')}
+    ${kpi('Cobertura de stock',fpct(I.cobProm),(I.prendasBajo||0)+' prendas bajo '+P.metaCobertura+' %',semaforo(I.cobProm,P.metaCobertura,true))}
+    ${kpi('Suficiencia en circulación',fpct(I.suficiencia),'Existencia / (consumo diario × '+P.factorCirculacion+') · meta ≥ '+P.metaSuficiencia+' %',semaforo(I.suficiencia,P.metaSuficiencia,true))}
+  </div>
+  <div class="card" style="margin-top:14px"><h2>Movimiento por prenda · ${nombreMes(m)}</h2>
+  <div class="muted">Consumo diario = piezas enviadas a lavar ÷ ${C.dias} días. Existencia = nivel conocido de cada servicio + existencia en Paliativos + saldo en lavandería.</div>
+  ${(n=>n<serviciosStock().length?`<div class="alert">Solo ${n} de ${serviciosStock().length} servicios tienen conteo físico; la existencia y la suficiencia están incompletas hasta contar todos.</div>`:'')(Object.values(C.cob).filter(o=>o.conteo).length)}
+  <div class="tw" style="margin-top:8px"><table><tr><th>Prenda</th><th class="n">Enviadas</th><th class="n">de ellas contam.</th><th class="n">Aceptadas</th><th class="n">Rechazadas</th><th class="n">% rechazo</th><th class="n">Faltantes</th><th class="n">Consumo diario</th><th class="n">Existencia total</th><th class="n">Recomendada</th><th class="n">Suficiencia</th></tr>
+  ${C.filas.length?C.filas.map(f=>`<tr><td>${esc(prenda(f.pid).nombre)}</td><td class="n">${fmt(f.env)}</td><td class="n">${fmt(f.envX)}</td><td class="n">${fmt(f.acep)}</td><td class="n">${fmt(f.rech)}</td><td class="n ${pct(f.rech,f.acep+f.rech)>P.metaRechazo?'bad':''}">${fpct(pct(f.rech,f.acep+f.rech))}</td><td class="n">${fmt(f.fal)}</td><td class="n">${f.consumo.toFixed(1)}</td><td class="n">${fmt(f.exist)}</td><td class="n">${fmt(Math.ceil(f.recom))}</td><td class="n">${f.suf===null?'—':`<span class="pill ${semaforo(f.suf,P.metaSuficiencia,true)}">${fpct(f.suf)}</span>`}</td></tr>`).join(''):'<tr><td colspan="11" class="empty">Sin movimientos en el mes.</td></tr>'}
+  <tr class="tot"><td>Total</td><td class="n">${fmt(C.T.env)}</td><td></td><td class="n">${fmt(C.T.acep)}</td><td class="n">${fmt(C.T.rech)}</td><td class="n">${fpct(I.rechazo)}</td><td class="n">${fmt(C.T.fal)}</td><td></td><td class="n">${fmt(C.T.exist)}</td><td class="n">${fmt(Math.ceil(C.T.rec))}</td><td class="n">${fpct(I.suficiencia)}</td></tr></table></div></div>
+  <div class="card"><h2>Ropa surtida desde Paliativos por servicio · ${nombreMes(m)}</h2><div class="tw">${(()=>{const sv=serviciosStock();const ps=prendasActivas();let tot={};
+    const rows=ps.map(p=>{let t=0;const cells=sv.map(s=>{const v=num((C.surt[s.id]||{})[p.id]);t+=v;tot[s.id]=(tot[s.id]||0)+v;return `<td class="n">${v?fmt(v):'—'}</td>`;}).join('');return t?`<tr><td>${esc(p.nombre)}</td>${cells}<td class="n"><b>${fmt(t)}</b></td></tr>`:'';}).join('');
+    return rows?`<table><tr><th>Prenda</th>${sv.map(s=>`<th class="n">${esc(s.nombre)}</th>`).join('')}<th class="n">Total</th></tr>${rows}<tr class="tot"><td>Total</td>${sv.map(s=>`<td class="n">${fmt(tot[s.id]||0)}</td>`).join('')}<td class="n">${fmt(Object.values(tot).reduce((a,b)=>a+b,0))}</td></tr></table>`:'<div class="empty">Sin resurtidos en el mes.</div>';})()}</div>
+  <div class="muted" style="margin-top:6px">Lo surtido a cada servicio es su consumo real de ropa limpia en el mes.</div></div>
+  <div class="card"><h2>Notas del proveedor, bolsas contaminadas y rechazos</h2><div class="tw"><table><tr><th>Bolsas contaminadas enviadas</th><th>Diferencias contra nota de lavandería</th><th>Motivos de rechazo (recepciones)</th></tr>
+  <tr><td>${fmt(C.bolsas)}</td><td class="${C.difNota+C.difNotaEnv?'bad':''}">Recepciones: ${fmt(C.difNota)} pzas · Envíos: ${fmt(C.difNotaEnv)} pzas${C.sinNota?` · <span class="warn">${C.sinNota} movimientos sin nota</span>`:''}</td><td>${Object.keys(C.motivos).map(k=>esc(k)+': '+C.motivos[k]).join(' · ')||'—'}</td></tr></table></div></div>
+  <div class="card"><h2>Cobertura de stock por servicio (conteo más reciente al cierre)</h2><div class="tw"><table><tr><th>Servicio</th><th>Conteo</th><th class="n">Stock (pzas)</th><th class="n">Cobertura</th><th>Prendas bajo ${P.metaCobertura} %</th></tr>
+  ${serviciosStock().map(s=>{const o=C.cob[s.id];return `<tr><td>${esc(s.nombre)}</td><td>${o.conteo?fFecha(o.conteo.fecha):'<span class="muted">Sin conteo</span>'}</td><td class="n">${fmt(o.dotTotal)}</td><td class="n">${o.cobGlobal===null?'—':`<span class="pill ${semaforo(o.cobGlobal,P.metaCobertura,true)}">${fpct(o.cobGlobal)}</span>`}</td><td class="muted">${o.conteo?o.filas.filter(f=>f.cob<P.metaCobertura).map(f=>esc(prenda(f.pid).nombre)+' ('+fmt(f.cont)+'/'+fmt(f.dot)+')').join(', ')||'—':'—'}</td></tr>`;}).join('')}</table></div></div>`;
 }
 
-/* ================= INVENTARIO: ALTAS Y BAJAS ================= */
-function renderInventario(){
-  const filasInv=['piso','qx'].map(g=>{let ti=0,tm=0,ta=0,tb=0;const rows=prendas(g).map(p=>{const a=DB.altas.reduce((s,r)=>s+num(r.items[p.id]),0);const b=DB.bajas.reduce((s,r)=>s+num(r.items[p.id]),0);const i=a-b;ti+=i;tm+=num(p.meta);ta+=a;tb+=b;
-      return `<tr><td>${esc(p.nombre)}</td><td class="n">${fmt(p.meta)}</td><td class="n">${fmt(a)}</td><td class="n">${fmt(b)}</td><td class="n"><b>${fmt(i)}</b></td><td class="n ${i<num(p.meta)?'warn':'okc'}">${fmt(i-num(p.meta))}</td></tr>`;}).join('');
-    return `<tr class="grp"><td colspan="6">${GRUPO_NOMBRE[g]}</td></tr>${rows}<tr class="tot"><td>Subtotal</td><td class="n">${fmt(tm)}</td><td class="n">${fmt(ta)}</td><td class="n">${fmt(tb)}</td><td class="n">${fmt(ti)}</td><td class="n">${fmt(ti-tm)}</td></tr>`;}).join('');
-  $('tabInv').innerHTML=`<table><tr><th>Prenda</th><th class="n">Inventario calculado</th><th class="n">Altas</th><th class="n">Bajas</th><th class="n">En inventario</th><th class="n">Diferencia</th></tr>${filasInv}</table>`;
-  const m=$('fInvMes').value;
-  $('tabAltas').innerHTML=tablaRegistros('altas',DB.altas.filter(r=>!m||enRango(r,m)),[{t:'Tipo',f:r=>esc(r.tipo)},{t:'Destino',f:r=>esc(ubicNombre(r.destino))},{t:'Documento',f:r=>esc(r.documento||'')},{t:'Piezas',n:1,f:r=>fmt(sumItems(r.items))}],r=>`<button class="btn sec sm edit-only" onclick="abrirAlta('${r.id}')">✏️</button>`);
-  $('tabBajas').innerHTML=tablaRegistros('bajas',DB.bajas.filter(r=>!m||enRango(r,m)),[{t:'Origen',f:r=>esc(ubicNombre(r.origen))},{t:'Motivo',f:r=>esc(r.motivo)},{t:'Piezas',n:1,f:r=>fmt(sumItems(r.items))},{t:'Detalle',f:r=>`<span class="muted">${esc(resumen(r.items,k=>prenda(k).nombre))}</span>`}],r=>`<button class="btn sec sm acc-lav" onclick="abrirBaja('${r.id}')">✏️</button>`);
-}
-function abrirAlta(id){
-  if(!requiere('admin'))return;const r=id?DB.altas.find(x=>x.id===id):null;
-  abrirModal(`<h2>${r?'Editar '+esc(r.folio):'Alta de ropa al inventario'}</h2>${htmlFH(r)}
-  <div class="row" style="margin-top:8px"><label class="f">Tipo<select id="fTipo">${['Inventario inicial','Compra','Reposición de bajas','Donación','Otro'].map(t=>`<option ${r&&r.tipo===t?'selected':''}>${t}</option>`).join('')}</select></label>
-  <label class="f">Entra a<select id="fDest" onchange="gridAlta()"><option value="almacen">Almacén central (ropa de cama y paciente)</option><option value="crudo">CEyE: ropa quirúrgica en crudo</option></select></label>
-  <label class="f" style="flex:1">Factura u orden de compra<input id="fDoc" value="${esc(r?r.documento:'')}"></label></div>
-  <div id="gridAlt" style="margin-top:8px"></div>${piePersona('Recibió',r&&r.responsable)}${botones('altas',id,'guardarAlta')}`);
-  if(r)$('fDest').value=r.destino;setObs(r);window._valAlt=r?r.items:null;gridAlta();
-}
-function gridAlta(){const g=$('fDest').value==='crudo'?'qx':'piso';const inv={};prendas(g).forEach(p=>inv[p.id]=num(p.meta)-inventario(p.id));$('gridAlt').innerHTML=gridHTML(lista(prendas(g)),window._valAlt,{titulo:'Falta para el calculado',f:p=>Math.max(0,inv[p])});totGrid();}
-function guardarAlta(id){
-  const it=leerGrid();if(!Object.keys(it).length){toast('Capture al menos una pieza');return;}
-  const r=id?DB.altas.find(x=>x.id===id):null;const fh=leerFH();
-  guardarRegistro('altas',{id:r?r.id:uid(),folio:r?r.folio:siguienteFolio('altas',fh.fecha),...fh,tipo:$('fTipo').value,destino:$('fDest').value,documento:$('fDoc').value.trim(),items:it,responsable:$('fP1').value.trim(),obs:$('fObs').value.trim(),rol:ROL});
-  cerrarModal();toast('Alta registrada');
-}
-function abrirBaja(id){
-  if(!requiere('lav'))return;const r=id?DB.bajas.find(x=>x.id===id):null;
-  const opts=[['lav','Lavandería (detectada al lavar o revisar)'],['almacen','Almacén central'],['crudo','CEyE: ropa quirúrgica en crudo']].concat(servicios().map(s=>[s.id,s.nombre]));
-  abrirModal(`<h2>${r?'Editar '+esc(r.folio):'Baja de ropa'}</h2>${htmlFH(r)}
-  <div class="row" style="margin-top:8px"><label class="f">Dónde se detectó<select id="fOrig" onchange="gridBaja()">${opts.map(([v,t])=>`<option value="${v}" ${r&&r.origen===v?'selected':''}>${esc(t)}</option>`).join('')}</select></label>
-  <label class="f">Motivo<select id="fMot">${MOTIVOS.map(t=>`<option ${r&&r.motivo===t?'selected':''}>${t}</option>`).join('')}</select></label></div>
-  <div class="note">La baja descuenta las piezas del inventario. Separe la ropa dada de baja para su destino final.</div>
-  <div id="gridBaj"></div>${piePersona('Responsable',r&&r.responsable)}${botones('bajas',id,'guardarBaja')}`);
-  setObs(r);window._valBaj=r?r.items:null;gridBaja();
-}
-function gridBaja(){const o=$('fOrig').value;$('gridBaj').innerHTML=gridHTML(lista(o==='crudo'?prendas('qx'):o==='lav'?prendas():prendas('piso')),window._valBaj);totGrid();}
-function guardarBaja(id){
-  const it=leerGrid();if(!Object.keys(it).length){toast('Capture al menos una pieza');return;}
-  const r=id?DB.bajas.find(x=>x.id===id):null;const fh=leerFH();
-  guardarRegistro('bajas',{id:r?r.id:uid(),folio:r?r.folio:siguienteFolio('bajas',fh.fecha),...fh,origen:$('fOrig').value,motivo:$('fMot').value,items:it,responsable:$('fP1').value.trim(),obs:$('fObs').value.trim(),rol:ROL});
-  cerrarModal();toast('Baja registrada');
-}
-
-/* ================= CONCENTRADO MENSUAL ================= */
-function datosMes(m){
-  const suc=sumaCol('sucia',m),lavA=sumaCol('lavados',m,r=>r.destino==='almacen'),lavC=sumaCol('lavados',m,r=>r.destino==='crudo'),sur=sumaCol('surtidos',m),baj=sumaCol('bajas',m),alt=sumaCol('altas',m);
-  const fin=m===mesDe(hoy())?null:m+'-31T99:99';const dias=diasOperacion(m);
-  const est=sumaCol('esteril',m),uso=sumaCol('usos',m);
-  const motivos={};DB.bajas.filter(r=>enRango(r,m)).forEach(r=>motivos[r.motivo]=(motivos[r.motivo]||0)+sumItems(r.items));
-  const surtidos=DB.surtidos.filter(r=>enRango(r,m)).length;
-  return {suc,lavA,lavC,sur,baj,alt,fin,dias,est,uso,motivos,surtidos};
-}
-function htmlConcentrado(m){
-  const d=datosMes(m);const tot=o=>Object.values(o).reduce((a,b)=>a+num(b),0);
-  let invFin=0;prendas().forEach(p=>invFin+=inventario(p.id,d.fin));
-  const kp=`<div class="kpis">${[kpi('Ropa sucia recibida',fmt(tot(d.suc)),fmt(tot(d.suc)/d.dias,0)+' piezas por día'),kpi('Ropa lavada lista',fmt(tot(d.lavA)+tot(d.lavC)),fmt(tot(d.lavA))+' al almacén · '+fmt(tot(d.lavC))+' a CEyE'),kpi('Resurtido a servicios',fmt(tot(d.sur)),d.surtidos+' entregas'),
-    kpi('Bajas',fmt(tot(d.baj)),invFin?fpct(tot(d.baj)/invFin*100)+' del inventario':''),kpi('Altas',fmt(tot(d.alt)),'Piezas que entraron al inventario'),kpi('Bultos esterilizados / usados',fmt(tot(d.est))+' / '+fmt(tot(d.uso)),'')].join('')}</div>`;
-  const tabla=g=>`<table><tr><th>Prenda</th><th class="n">Sucia recibida</th><th class="n">Promedio por día</th><th class="n">Calculado (día alto)</th><th class="n">Lavada lista</th>${g==='piso'?'<th class="n">Resurtida</th>':''}<th class="n">Bajas</th><th class="n">Altas</th><th class="n">Inventario al cierre</th></tr>
-   ${prendas(g).map(p=>`<tr><td>${esc(p.nombre)}</td><td class="n">${fmt(d.suc[p.id])}</td><td class="n">${fmt(num(d.suc[p.id])/d.dias,1)}</td><td class="n">${fmt(p.consumo,1)}</td><td class="n">${fmt(num(d.lavA[p.id])+num(d.lavC[p.id]))}</td>${g==='piso'?`<td class="n">${fmt(d.sur[p.id])}</td>`:''}<td class="n">${fmt(d.baj[p.id])}</td><td class="n">${fmt(d.alt[p.id])}</td><td class="n">${fmt(inventario(p.id,d.fin))}</td></tr>`).join('')}</table>`;
-  const bl=`<table><tr><th>Bulto</th><th class="n">Esterilizados</th><th class="n">Entregados a quirófano</th></tr>${bultos().map(b=>`<tr><td>${esc(b.nombre)}</td><td class="n">${fmt(d.est[b.id])}</td><td class="n">${fmt(d.uso[b.id])}</td></tr>`).join('')}</table>`;
-  const mot=Object.keys(d.motivos).length?`<table><tr><th>Motivo</th><th class="n">Piezas</th></tr>${Object.keys(d.motivos).map(k=>`<tr><td>${esc(k)}</td><td class="n">${fmt(d.motivos[k])}</td></tr>`).join('')}</table>`:'<div class="muted">Sin bajas en el mes.</div>';
-  return `${kp}<h3>Ropa de cama y paciente</h3><div class="tw">${tabla('piso')}</div><h3>Ropa quirúrgica</h3><div class="tw">${tabla('qx')}</div><h3>Bultos estériles</h3><div class="tw">${bl}</div><h3>Bajas por motivo</h3><div class="tw">${mot}</div>
-  <p class="muted">Días con ropa sucia registrada: ${d.dias}. El promedio por día de ropa sucia es el consumo real; compárelo con el calculado (día alto) para ajustar el inventario.</p>`;
-}
-function renderConcentrado(){const m=$('selMesConc').value;$('concBody').innerHTML=`<div class="card"><h2>${nombreMes(m)}</h2>${htmlConcentrado(m)}</div>`;}
-
-/* ================= CONFIGURACIÓN ================= */
+/* ---------- Configuración ---------- */
 function renderConfig(){
-  const adm=ROL==='admin';const dis=adm?'':'disabled';
-  $('tabPrendas').innerHTML=`<table><tr><th>Prenda</th><th>Grupo</th><th class="n">Inventario calculado</th><th class="n">Consumo día alto</th><th>Activa</th></tr>${DB.config.prendas.map((p,i)=>`<tr><td><input data-i="${i}" data-k="nombre" value="${esc(p.nombre)}" ${dis} style="width:100%"></td><td>${GRUPO_NOMBRE[p.grupo]||p.grupo}</td><td class="n"><input type="number" data-i="${i}" data-k="meta" value="${num(p.meta)}" ${dis}></td><td class="n"><input type="number" step="0.1" data-i="${i}" data-k="consumo" value="${num(p.consumo)}" ${dis}></td><td><input type="checkbox" data-i="${i}" data-k="activo" ${p.activo!==false?'checked':''} ${dis}></td></tr>`).join('')}</table>`;
-  const qx=prendas('qx');
-  $('tabCfgBultos').innerHTML=`<table><tr><th>Bulto</th><th class="n">Stock</th>${qx.map(p=>`<th class="n" style="font-size:10px">${esc(p.nombre)}</th>`).join('')}</tr>${DB.config.bultos.map((b,i)=>`<tr><td><input data-b="${i}" data-k="nombre" value="${esc(b.nombre)}" ${dis} style="width:150px"></td><td class="n"><input type="number" style="width:52px" data-b="${i}" data-k="stock" value="${num(b.stock)}" ${dis}></td>${qx.map(p=>`<td class="n"><input type="number" style="width:46px" data-b="${i}" data-c="${p.id}" value="${b.comp[p.id]||''}" ${dis}></td>`).join('')}</tr>`).join('')}</table>`;
+  const g=grupos(DB.config.prendas);
+  $('tabPrendas').innerHTML=`<table><tr><th>Clave</th><th>Prenda</th><th>Grupo</th><th>Activa</th></tr>${DB.config.prendas.map((p,i)=>`<tr><td class="muted">${esc(p.id)}</td><td><input value="${esc(p.nombre)}" ${esAdmin()?'':'disabled'} onchange="DB.config.prendas[${i}].nombre=this.value.trim()||DB.config.prendas[${i}].nombre;guardarConfig()" style="width:100%"></td>
+    <td><select ${esAdmin()?'':'disabled'} onchange="DB.config.prendas[${i}].grupo=this.value;guardarConfig()">${['Ropa de cama','Ropa de paciente','Ropa quirúrgica','Otra'].map(o=>`<option ${o===p.grupo?'selected':''}>${o}</option>`).join('')}</select></td>
+    <td><input type="checkbox" ${p.activo!==false?'checked':''} ${esAdmin()?'':'disabled'} onchange="DB.config.prendas[${i}].activo=this.checked;guardarConfig()"></td></tr>`).join('')}</table>
+    <div class="muted" style="margin-top:6px">Una prenda desactivada deja de aparecer en las capturas nuevas, pero conserva su historial.</div>`;
+  $('tabServicios').innerHTML=`<table><tr><th>Servicio</th><th>Activo</th></tr>${DB.config.servicios.map((s,i)=>`<tr><td><input style="width:100%" value="${esc(s.nombre)}" ${esAdmin()?'':'disabled'} onchange="DB.config.servicios[${i}].nombre=this.value.trim()||DB.config.servicios[${i}].nombre;guardarConfig()"></td>
+    <td><input type="checkbox" ${s.activo!==false?'checked':''} ${esAdmin()?'':'disabled'} onchange="DB.config.servicios[${i}].activo=this.checked;guardarConfig()"></td></tr>`).join('')}</table>
+    <div class="muted" style="margin-top:6px">El stock de cada servicio se captura en la pestaña Stock y conteos.</div>`;
   const P=DB.config.params;
-  $('params').innerHTML=[['horasAlerta','Alerta de ropa en lavandería (horas)'],['metaCobertura','Meta de cobertura de servicios (%)'],['metaBajasMes','Meta de bajas al mes (% del inventario)']].map(([k,l])=>`<label class="f">${l}<input type="number" id="par-${k}" value="${num(P[k])}" ${dis}></label>`).join('');
-  $('infoBackend').textContent=GAS_URL?'Conectado a Google Sheets':'Solo en este equipo';
+  const campos=[['diasAlerta','Días para reclamar saldo'],['diasEscala','Días para escalar a Gerencia'],['metaDevolucion','Meta devolución (%)'],['metaRechazo','Meta rechazo máx. (%)'],['metaFaltantes','Meta faltantes máx. (%)'],['metaCobertura','Meta cobertura (%)'],['metaSuficiencia','Meta suficiencia (%)'],['factorCirculacion','Dotaciones en circulación']];
+  $('params').innerHTML=campos.map(([k,l])=>`<label class="f">${l}<input type="number" step="0.1" min="0" id="par-${k}" value="${P[k]}" ${esAdmin()?'':'disabled'}></label>`).join('')+
+    `<label class="f" style="min-width:220px">Proveedor de lavandería<input id="par-proveedor" value="${esc(P.proveedor||'')}" ${esAdmin()?'':'disabled'}></label>`;
+  $('infoBackend').textContent=GAS_URL?'Conectado a Google Sheets · '+QUEUE.length+' cambios pendientes':'Sin conexión a Google Sheets: los datos solo están en este navegador.';
 }
-function guardarCatalogos(){
-  if(!requiere('admin'))return;
-  document.querySelectorAll('#tabPrendas input[data-i]').forEach(i=>{const p=DB.config.prendas[i.dataset.i];const k=i.dataset.k;p[k]=k==='activo'?i.checked:k==='nombre'?i.value.trim()||p.nombre:num(i.value);});
-  document.querySelectorAll('#tabCfgBultos input[data-b]').forEach(i=>{const b=DB.config.bultos[i.dataset.b];if(i.dataset.c){const v=Math.max(0,Math.round(num(i.value)));if(v)b.comp[i.dataset.c]=v;else delete b.comp[i.dataset.c];}else if(i.dataset.k==='stock')b.stock=Math.max(0,Math.round(num(i.value)));else b.nombre=i.value.trim()||b.nombre;});
-  ['horasAlerta','metaCobertura','metaBajasMes'].forEach(k=>DB.config.params[k]=num($('par-'+k).value));
-  guardarConfig();render();toast('Configuración guardada');
+function guardarParams(){
+  if(!requiere('admin'))return;const P=DB.config.params;
+  Object.keys(PARAMS_DEF).forEach(k=>{const el=$('par-'+k);if(!el)return;P[k]=k==='proveedor'?el.value.trim():num(el.value);});
+  guardarConfig();toast('Parámetros guardados');render();
 }
-function agregarBulto(){if(!requiere('admin'))return;const n=prompt('Nombre del nuevo bulto');if(!n)return;DB.config.bultos.push({id:'b'+uid().slice(-5),nombre:n.trim(),stock:0,comp:{},activo:true});guardarConfig();render();}
+function agregarPrenda(){
+  if(!requiere('admin'))return;const n=$('nvPrenda').value.trim();if(!n)return;
+  let i=1;while(DB.config.prendas.some(p=>p.id==='x'+String(i).padStart(2,'0')))i++;
+  DB.config.prendas.push({id:'x'+String(i).padStart(2,'0'),nombre:n,grupo:$('nvGrupo').value,activo:true});$('nvPrenda').value='';guardarConfig();renderConfig();toast('Prenda agregada');
+}
+function agregarServicio(){
+  if(!requiere('admin'))return;const n=$('nvServ').value.trim();if(!n)return;
+  let i=1;while(DB.config.servicios.some(s=>s.id==='s'+i))i++;
+  DB.config.servicios.push({id:'s'+i,nombre:n,activo:true});DB.config.dotacion['s'+i]={};$('nvServ').value='';guardarConfig();renderConfig();toast('Servicio agregado');
+}
 function exportarJSON(){const b=new Blob([JSON.stringify(DB,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='respaldo_ropa_cmga_'+hoy()+'.json';a.click();}
 
 /* ================= IMPRESIÓN ================= */
@@ -774,51 +901,85 @@ function ventanaImpresion(titulo,cuerpo){
   const w=window.open('','_blank');if(!w){toast('Permita ventanas emergentes para imprimir');return;}
   w.document.write(`<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>${esc(titulo)}</title><style>
   body{font-family:Arial,Helvetica,sans-serif;color:#1F2937;margin:24px;font-size:12px}
-  .enc{display:flex;align-items:center;gap:12px;border-bottom:3px solid #1A8A6F;padding-bottom:6px;margin-bottom:12px}.enc img{height:42px}.enc .sp{flex:1}.enc .t{color:#6B7280;font-size:13px}
-  h2{color:#1B3A6B;font-size:15px;margin:6px 0}h3{color:#1A8A6F;font-size:13px;margin:14px 0 4px}
-  table{border-collapse:collapse;width:100%;margin-top:6px}th,td{border:1px solid #C9D1DB;padding:4px 6px;text-align:left}th{background:#1B3A6B;color:#fff;font-size:11px}
-  td.n,th.n{text-align:right}.tot td{font-weight:700;background:#E3F3EE}.grp td{background:#F7F9FB;font-weight:700;color:#1A8A6F}
+  .enc{display:flex;align-items:flex-end;gap:10px;border-bottom:3px solid #1A8A6F;padding-bottom:6px;margin-bottom:12px}
+  .enc .lg{font-weight:700;color:#1B3A6B;font-size:15px}.enc .t{color:#6B7280;font-size:14px}
+  h2{color:#1B3A6B;font-size:14px;margin:14px 0 6px}
+  table{border-collapse:collapse;width:100%;margin-top:6px}th,td{border:1px solid #C9D1DB;padding:4px 6px;text-align:left}th{background:#EEF2F7;color:#1B3A6B}
+  td.n,th.n{text-align:right}.tot td{font-weight:700;background:#EEF2F7}.grp td{background:#F7F9FB;font-weight:700;color:#1A8A6F}
   .meta{display:grid;grid-template-columns:repeat(3,1fr);gap:4px 16px;margin-bottom:8px}.meta b{color:#1B3A6B}
-  .kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.kpi{border:1px solid #C9D1DB;border-left:4px solid #1A8A6F;padding:6px}.kpi .l{font-size:11px;color:#6B7280}.kpi .v{font-size:16px;font-weight:700;color:#1B3A6B}.kpi .m{font-size:10px;color:#6B7280}
   .firmas{display:flex;gap:40px;margin-top:48px}.firmas div{flex:1;border-top:1px solid #1F2937;text-align:center;padding-top:4px}
-  .pie{margin-top:18px;font-size:10px;color:#6B7280;border-top:1px solid #DDE3EA;padding-top:4px}.muted{color:#6B7280}.pill{font-weight:700}
-  @media print{body{margin:10mm}}
-  </style></head><body><div class="enc"><img src="${LOGO}" alt="CMGA"><div class="sp"></div><span class="t">| ${esc(titulo)}</span></div>${cuerpo}
-  <div class="pie">Control de Ropa Hospitalaria · Gerencia de Enfermería · Av. Independencia 1839, Trojes de Alonso, C.P. 20124, Aguascalientes, Ags. · Tel. 449 689 0591 · Impreso ${fFecha(hoy())} ${ahora()}</div>
-  <script>setTimeout(()=>window.print(),400)<\/script></body></html>`);
+  .pie{margin-top:18px;font-size:10px;color:#6B7280;border-top:1px solid #DDE3EA;padding-top:4px}
+  .kp{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.kp div{border:1px solid #C9D1DB;border-left:4px solid #1A8A6F;padding:6px}.kp b{display:block;font-size:16px;color:#1B3A6B}
+  .bad{color:#C0392B;font-weight:700}
+  @media print{body{margin:10mm}button{display:none}}
+  </style></head><body><div class="enc"><span class="lg">Centro Médico Galerías Aguascalientes</span><span class="t">| ${esc(titulo)}</span></div>${cuerpo}
+  <div class="pie">PRO-ENF-ROP-001 · Control de Ropa Hospitalaria · Av. Independencia 1839, Trojes de Alonso, C.P. 20124, Aguascalientes, Ags. · Tel. 449 689 0591 · Impreso ${fFecha(hoy())} ${ahora()}</div>
+  <script>setTimeout(()=>window.print(),300)<\/script></body></html>`);
   w.document.close();
 }
-const TITULOS={sucia:'Recepción de ropa sucia',lavados:'Ropa lavada lista',surtidos:'Resurtido a servicio',conteos:'Conteo físico',bajas:'Baja de ropa',altas:'Alta al inventario',esteril:'Bultos esterilizados',usos:'Bultos entregados a quirófano'};
-function imprimirRegistro(col,id){
-  const r=DB[col].find(x=>x.id===id);if(!r)return;const esB=col==='esteril'||col==='usos'||(col==='conteos'&&r.ubic==='anaquel');
-  const nom=k=>esB?bulto(k).nombre:prenda(k).nombre;
-  const meta=[['Folio',r.folio],['Fecha y hora',fFecha(r.fecha)+' '+(r.hora||'')]];
-  if(r.origen)meta.push([col==='bajas'?'Dónde se detectó':'Origen',ubicNombre(r.origen)]);if(r.destino)meta.push(['Destino',ubicNombre(r.destino)]);if(r.servicio)meta.push(['Servicio',ubicNombre(r.servicio)]);
-  if(r.ubic)meta.push(['Ubicación',ubicNombre(r.ubic)]);if(r.motivo)meta.push(['Motivo',r.motivo]);if(r.tipo)meta.push(['Tipo',r.tipo]);if(r.documento)meta.push(['Documento',r.documento]);if(r.ciclo)meta.push(['Ciclo / lote',r.ciclo]);if(r.sala)meta.push(['Sala / cirugía',r.sala]);
-  let tabla;
-  if(col==='surtidos'){const st=DB.config.stock[r.servicio]||{};let tc=0,te=0;tabla=`<table><tr><th>Prenda</th><th class="n">Stock autorizado</th><th class="n">Había en gabinete</th><th class="n">Entregado</th></tr>${Object.keys(r.items).map(p=>{tc+=num(r.items[p].c);te+=num(r.items[p].e);return `<tr><td>${esc(nom(p))}</td><td class="n">${fmt(st[p])}</td><td class="n">${fmt(r.items[p].c)}</td><td class="n">${fmt(r.items[p].e)}</td></tr>`;}).join('')}<tr class="tot"><td>Total</td><td></td><td class="n">${fmt(tc)}</td><td class="n">${fmt(te)}</td></tr></table>`;}
-  else{let t=0;tabla=`<table><tr><th>${esB?'Bulto':'Prenda'}</th><th class="n">${esB?'Bultos':'Piezas'}</th></tr>${Object.keys(r.items).filter(k=>num(r.items[k])||col==='conteos').map(k=>{t+=num(r.items[k]);return `<tr><td>${esc(nom(k))}</td><td class="n">${fmt(r.items[k])}</td></tr>`;}).join('')}<tr class="tot"><td>Total</td><td class="n">${fmt(t)}</td></tr></table>`;}
-  const f1=r.entrega!==undefined?['Entregó',r.entrega]:['Responsable',r.responsable];const f2=r.recibe!==undefined?['Recibió',r.recibe]:null;
-  ventanaImpresion(TITULOS[col],`<h2>${TITULOS[col]}</h2><div class="meta">${meta.map(([a,b])=>`<div><b>${a}:</b> ${esc(b)}</div>`).join('')}</div>${tabla}${r.obs?`<p><b>Observaciones:</b> ${esc(r.obs)}</p>`:''}
-  <div class="firmas"><div>${f1[0]}<br>${esc(f1[1]||'')}</div>${f2?`<div>${f2[0]}<br>${esc(f2[1]||'')}</div>`:''}</div>`);
+function tablaItems(items,cols){
+  const g=grupos(DB.config.prendas.filter(p=>items[p.id]));let tot={};cols.forEach(c=>tot[c.k]=0);
+  return `<table><tr><th>Prenda</th>${cols.map(c=>`<th class="n">${c.label}</th>`).join('')}</tr>${Object.keys(g).map(gr=>`<tr class="grp"><td colspan="${cols.length+1}">${esc(gr)}</td></tr>`+g[gr].map(p=>`<tr><td>${esc(p.nombre)}</td>${cols.map(c=>{const v=c.f(items[p.id]);tot[c.k]+=v;return `<td class="n">${fmt(v)}</td>`;}).join('')}</tr>`).join('')).join('')}
+  <tr class="tot"><td>Total</td>${cols.map(c=>`<td class="n">${fmt(tot[c.k])}</td>`).join('')}</tr></table>`;
 }
-function imprimirHojaConteo(ubic){
-  const u=ubic||'almacen';let ls;
-  if(u==='anaquel')ls=bultos();else if(u==='crudo')ls=prendas('qx');else if(u==='lav')ls=prendas();else if(u==='almacen')ls=prendas('piso');else{const st=DB.config.stock[u]||{};ls=prendas('piso').filter(p=>num(st[p.id]));}
-  ventanaImpresion('Hoja de conteo físico',`<h2>Hoja de conteo físico: ${esc(ubicNombre(u))}</h2><div class="meta"><div><b>Fecha:</b> ____________</div><div><b>Hora:</b> ________</div><div><b>Contó:</b> ____________________</div></div>
-  <table><tr><th>${u==='anaquel'?'Bulto':'Prenda'}</th>${DB.config.stock[u]?'<th class="n">Stock autorizado</th>':''}<th class="n" style="width:120px">Conteo</th></tr>${ls.map(p=>`<tr><td>${esc(p.nombre)}</td>${DB.config.stock[u]?`<td class="n">${fmt(DB.config.stock[u][p.id])}</td>`:''}<td></td></tr>`).join('')}</table>`);
+function imprimirEnvio(id){
+  const e=DB.envios.find(x=>x.id===id);if(!e)return;const P=DB.config.params;
+  ventanaImpresion('Remisión de envío de ropa sucia',`<div class="meta"><div>Folio: <b>${esc(e.folio)}</b></div><div>Fecha: <b>${fFecha(e.fecha)} ${esc(e.hora||'')}</b></div><div>Proveedor: <b>${esc(P.proveedor||'—')}</b></div>
+  <div>Bolsas contaminadas: <b>${fmt(e.bolsasCont)}</b></div><div>Nota del proveedor: <b>${esc(e.notaProv||'—')}</b></div></div>
+  ${tablaItems(e.items,[{k:'c',label:'Común',f:v=>num(v.c)},{k:'x',label:'Contaminada (declarada)',f:v=>num(v.x)},{k:'t',label:'Total contado',f:v=>num(v.c)+num(v.x)},{k:'n',label:'Según nota',f:v=>num(v.n)},{k:'d',label:'Diferencia',f:v=>tieneNota(e)?num(v.c)+num(v.x)-num(v.n):0}])}
+  <p><b>Cotejo contra la nota del proveedor${e.notaProv?' ('+esc(e.notaProv)+')':''}:</b> ${esc(textoDifNota(e))}</p>
+  ${e.obs?`<p><b>Observaciones:</b> ${esc(e.obs)}</p>`:''}
+  ${fotoPrint(e)}
+  <div class="firmas"><div>Contó y entregó (Vigilancia)<br>${esc(e.entrega||'')}</div><div>Recibió (proveedor)<br>${esc(e.recibe||'')}</div></div>`);
 }
-function imprimirTablero(){
-  ventanaImpresion('Estado de la ropa hospitalaria',`<h2>Estado de la ropa hospitalaria al ${fFecha(hoy())} ${ahora()}</h2><div class="kpis">${$('kpisTablero').innerHTML}</div><h3>Ropa de cama y paciente</h3>${tablaEstado('piso')}<h3>Ropa quirúrgica</h3>${tablaEstado('qx')}`);
+function imprimirRecepcion(id){
+  const r=DB.recepciones.find(x=>x.id===id);if(!r)return;const P=DB.config.params;
+  ventanaImpresion('Recepción de ropa limpia',`<div class="meta"><div>Folio: <b>${esc(r.folio)}</b></div><div>Fecha: <b>${fFecha(r.fecha)} ${esc(r.hora||'')}</b></div><div>Proveedor: <b>${esc(P.proveedor||'—')}</b></div>
+  <div>Remisión del proveedor: <b>${esc(r.remisionProv||'—')}</b></div><div>Motivos de rechazo: <b>${esc((r.motivos||[]).join(', ')||'—')}</b></div></div>
+  ${tablaItems(r.items,[{k:'n',label:'Según nota',f:v=>num(v.n)},{k:'a',label:'Aceptadas',f:v=>num(v.a)},{k:'r',label:'Rechazadas (devueltas)',f:v=>num(v.r)},{k:'d',label:'Diferencia vs nota',f:v=>tieneNota(r)?num(v.a)+num(v.r)-num(v.n):0}])}
+  <p><b>Cotejo contra la nota de lavandería:</b> ${esc(textoDifNota(r))}</p>
+  ${r.obs?`<p><b>Observaciones:</b> ${esc(r.obs)}</p>`:''}
+  ${fotoPrint(r)}
+  <div class="firmas"><div>Recibió y contó (Vigilancia)<br>${esc(r.recibio||'')}</div><div>Entregó (proveedor)<br>${esc(r.entrego||'')}</div></div>`);
 }
-function imprimirConcentrado(){const m=$('selMesConc').value;ventanaImpresion('Concentrado mensual de ropa',`<h2>Concentrado mensual: ${nombreMes(m)}</h2>${htmlConcentrado(m)}<div class="firmas"><div>Elaboró</div><div>Vo. Bo. Gerencia de Enfermería</div></div>`);}
+function imprimirSaldo(){
+  const S=calcularSaldo();const P=DB.config.params;const ids=Object.keys(S).filter(p=>S[p].saldo!==0);
+  ventanaImpresion('Conciliación de saldo con lavandería',`<div class="meta"><div>Corte: <b>${fFecha(hoy())}</b></div><div>Proveedor: <b>${esc(P.proveedor||'—')}</b></div><div></div></div>
+  <table><tr><th>Prenda</th><th class="n">Enviadas</th><th class="n">Aceptadas</th><th class="n">Faltantes reconocidos</th><th class="n">Saldo CMGA</th><th>Pendiente desde</th><th class="n">Días</th><th class="n">Saldo según proveedor</th><th class="n">Diferencia</th></tr>
+  ${ids.map(p=>{const o=S[p];return `<tr><td>${esc(prenda(p).nombre)}</td><td class="n">${fmt(o.env+o.ini)}</td><td class="n">${fmt(o.acep)}</td><td class="n">${fmt(o.fal)}</td><td class="n"><b>${fmt(o.saldo)}</b></td><td>${o.masAntigua?fFecha(o.masAntigua):'—'}</td><td class="n ${o.dias>P.diasAlerta?'bad':''}">${o.saldo>0?o.dias:'—'}</td><td></td><td></td></tr>`;}).join('')||'<tr><td colspan="9">Sin saldo pendiente.</td></tr>'}</table>
+  <p>Acuerdos:</p><p style="border-bottom:1px solid #999;height:18px"></p><p style="border-bottom:1px solid #999;height:18px"></p>
+  <div class="firmas"><div>Responsable de ropería (CMGA)</div><div>Representante del proveedor</div><div>Gerencia de Enfermería</div></div>`);
+}
+function imprimirHojaConteo(){
+  const sid=$('selServ').value;const s=servicio(sid);const ps=prendasActivas().filter(p=>dotacionDe(sid,p.id).efectiva>0);const g=grupos(ps.length?ps:prendasActivas());
+  ventanaImpresion('Hoja de conteo y surtido de ropa limpia',`<div class="meta"><div>Servicio: <b>${esc(s.nombre)}</b></div><div>Fecha: ____ / ____ / ______</div><div>Hora: ________ Turno: __________</div></div>
+  <table><tr><th>Prenda</th><th class="n">Stock</th><th class="n" style="width:95px">Conteo</th><th class="n" style="width:95px">A surtir</th><th class="n" style="width:95px">Surtido</th><th>Observaciones</th></tr>
+  ${Object.keys(g).map(gr=>`<tr class="grp"><td colspan="6">${esc(gr)}</td></tr>`+g[gr].map(p=>`<tr><td>${esc(p.nombre)}</td><td class="n">${fmt(dotacionDe(sid,p.id).efectiva)}</td><td></td><td></td><td></td><td></td></tr>`).join('')).join('')}</table>
+  <p style="font-size:11px;color:#6B7280">A surtir = stock − conteo. Ropería (Paliativos) entrega lo que falta para completar el stock.</p>
+  <div class="firmas"><div>Contó (servicio)</div><div>Surtió (ropería)</div><div>Supervisó (supervisión de enfermería)</div></div>`);
+}
+function imprimirSurtido(id){
+  const s=DB.surtidos.find(x=>x.id===id);if(!s)return;const sid=s.servicio;
+  const ps=prendasActivas().filter(p=>dotacionDe(sid,p.id).efectiva>0||num((s.items||{})[p.id]));const g=grupos(ps);let tS=0,tC=0,tF=0,tE=0;
+  ventanaImpresion('Vale de resurtido de ropa limpia',`<div class="meta"><div>Folio: <b>${esc(s.folio)}</b></div><div>Servicio: <b>${esc(servicio(sid).nombre)}</b></div><div>Fecha: <b>${fFecha(s.fecha)} ${esc(s.hora||'')}</b></div></div>
+  <table><tr><th>Prenda</th><th class="n">Stock</th><th class="n">Conteo gabinete</th><th class="n">Faltaba</th><th class="n">Surtido</th></tr>
+  ${Object.keys(g).map(gr=>`<tr class="grp"><td colspan="5">${esc(gr)}</td></tr>`+g[gr].map(p=>{const d=dotacionDe(sid,p.id).efectiva;const ct=num((s.conteo||{})[p.id]);const f=Math.max(d-ct,0);const e=num((s.items||{})[p.id]);tS+=d;tC+=ct;tF+=f;tE+=e;
+    return `<tr><td>${esc(p.nombre)}</td><td class="n">${fmt(d)}</td><td class="n">${fmt(ct)}</td><td class="n">${fmt(f)}</td><td class="n"><b>${fmt(e)}</b></td></tr>`;}).join('')).join('')}
+  <tr class="tot"><td>Total</td><td class="n">${fmt(tS)}</td><td class="n">${fmt(tC)}</td><td class="n">${fmt(tF)}</td><td class="n">${fmt(tE)}</td></tr></table>
+  ${s.obs?`<p><b>Observaciones:</b> ${esc(s.obs)}</p>`:''}
+  <div class="firmas"><div>Surtió (Supervisión de Enfermería)<br>${esc(s.entrego||'')}</div><div>Recibió (servicio)<br>${esc(s.recibio||'')}</div></div>`);
+}
+function imprimirConcentrado(){
+  const m=$('selMesConc').value||mesDe(hoy());renderConcentrado();
+  const html=$('concBody').innerHTML.replace(/class="kpis"/,'class="kp"').replace(/<div class="kpi[^"]*"><div class="l">([^<]*)<\/div><div class="v">([^<]*)<\/div><div class="m">([^<]*)<\/div><\/div>/g,'<div>$1<b>$2</b><small>$3</small></div>').replace(/<span class="pill [^"]*">([^<]*)<\/span>/g,'$1');
+  ventanaImpresion('Concentrado mensual de ropa hospitalaria · '+nombreMes(m),html.replace(/class="card"/g,'class="sec"').replace(/<h2/g,'<h2'));
+}
 
-/* ================= INICIO ================= */
-document.querySelectorAll('#nav button').forEach(b=>b.addEventListener('click',()=>irA(b.dataset.p)));
-$('modal').addEventListener('click',e=>{if(e.target.id==='modal')cerrarModal();});
-aplicarModo();render();sincronizar(false);
-setInterval(()=>{if(!document.hidden&&!$('modal').classList.contains('show'))sincronizar(false);},120000);
-
+/* ================= ARRANQUE ================= */
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('modal').classList.contains('show'))cerrarModal();});
+aplicarModo();llenarMeses();render();
+if(GAS_URL)sincronizar(false);else estadoSync('','Solo en este equipo');
+setInterval(()=>{if(GAS_URL&&QUEUE.length)vaciarCola();},30000);
 </script>
 </body>
 </html>
