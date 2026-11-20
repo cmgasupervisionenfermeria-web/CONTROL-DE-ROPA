@@ -1,74 +1,38 @@
-# Control de Ropa Hospitalaria · CMGA (PRO-ENF-ROP-001)
+# Control de Ropa Hospitalaria · CMGA (versión 3: lavandería propia)
 
-Hay dos archivos:
+Archivos:
 
-- `index.html`: la app (se publica en GitHub Pages).
+- `index.html`: la app (GitHub Pages).
 - `Code.gs`: el backend en Google Apps Script, que guarda todo en Google Sheets.
 
-## Instalación (unos 10 minutos)
+El mismo proyecto de Apps Script atiende también la app de lavandería externa (repositorio `CONTROL-DE-ROPA-EXTERNA`, peticiones con `app=ext`), que usa las hojas Envios, Recepciones, Ajustes, Conteos, Surtidos y Config.
 
-1. **Hoja de cálculo.** Cree una hoja nueva en Google Sheets llamada "Control de Ropa CMGA". Vaya a Extensiones → Apps Script.
-2. **Backend.** Borre el contenido de `Código.gs` y pegue todo `Code.gs`. Guarde. Ejecute una vez la función `inicializarHojas` y autorice los permisos. Se crean las hojas Envios, Recepciones, Ajustes, Conteos y Config.
-3. **Publicar.** Implementar → Nueva implementación → tipo **Aplicación web**. Ejecutar como: **Yo**. Quién tiene acceso: **Cualquier usuario**. Copie la URL que termina en `/exec`.
-4. **Conectar la app.** En `index.html`, al inicio del bloque `<script>`, pegue esa URL:
-   ```js
-   const GAS_URL = 'https://script.google.com/macros/s/XXXX/exec';
-   const PINS = { 'ROPA1':'admin', 'VIG1':'vig' };
-   ```
-5. **GitHub Pages.** Cree el repositorio (por ejemplo `cmgasupervisionenfermeria-web/Control-Ropa`), suba `index.html`, y active Pages en Settings → Pages → rama `main`.
-
-Si deja `GAS_URL` vacía, la app funciona igual, pero los datos se quedan solo en ese navegador.
-
-Para actualizar el backend sin cambiar la URL: Implementar → Administrar implementaciones → ✏️ → Nueva versión.
+La versión 3 crea hojas nuevas en la misma hoja de cálculo: Ropa sucia, Lavados, Resurtidos, Conteos fisicos, Bajas, Altas, Esterilizaciones, Salidas de bultos y Configuracion.
 
 ## Perfiles y PIN
 
 | PIN | Perfil | Qué puede hacer |
 | --- | --- | --- |
-| `ROPA1` | Acceso general | Todo: envíos, recepciones, resurtidos, conteos, stock, ajustes, configuración, corregir y eliminar |
-| `VIG1` | Vigilancia | Solo ve Envíos y Recepciones; registra entregas de ropa sucia y recepciones de limpia con foto de la nota; no edita ni borra |
+| `ROPA1` | Acceso general (Gerencia, Supervisión, Coordinación de Quirófano/CEyE) | Todo, incluidas las altas al inventario, los bultos esterilizados y las salidas a quirófano, el stock autorizado, la configuración, y corregir o eliminar registros |
+| `LAV1` | Lavandería | Recibir ropa sucia, registrar ropa lavada, resurtir servicios, conteos físicos y bajas |
 
-Sin PIN la app es de solo lectura. Una captura con error de Vigilancia se corrige con `ROPA1`.
+Sin PIN la app es de solo lectura.
 
-## Primer uso
+## Circuito
 
-1. Entre con `ROPA1` (botón **🔒 Entrar con PIN**).
-2. **Configuración:** revise el catálogo de prendas, los servicios y escriba el nombre del proveedor.
-3. **Stock y conteos:** la app ya trae el stock autorizado de cada servicio (Hospitalización, UCI, UCIM, Quirófano/Recuperación, Urgencias/Endoscopia e Imagen). Si cambia, se corrige ahí y se pulsa **Guardar stock**.
-4. **Saldo en lavandería → + Saldo inicial:** si el proveedor ya tenía ropa de CMGA al arrancar, regístrela una sola vez.
-5. **Paliativos → + Conteo físico de Paliativos:** cuente toda la ropa limpia de Paliativos. Ese conteo es el punto de partida; desde ahí la existencia se mueve sola.
-6. Haga el primer conteo de cada servicio.
+1. **Ropa sucia:** los camilleros la llevan directo a la lavandería; se cuenta al recibirla, por servicio de origen. La ropa quirúrgica se registra con origen "Quirófano (ropa quirúrgica)".
+2. **Lavado:** la ropa que pasa la revisión se registra como lavada, con destino al almacén central (ropa de cama y de paciente) o a CEyE (ropa quirúrgica en crudo). La que no sirve se registra como baja.
+3. **Almacén central (en la lavandería):** desde ahí la lavandería resurte los gabinetes. En el resurtido se cuenta lo que hay en el gabinete y la app calcula lo que falta para completar el stock autorizado.
+4. **CEyE:** al registrar bultos esterilizados, la app descuenta de la ropa en crudo las piezas de cada bulto, según su composición. Las salidas a quirófano descuentan bultos del anaquel.
+5. **Inventario:** altas (compra inicial y reposiciones) − bajas, contra el inventario calculado (RT-ENF-ROP-001: 1,433 piezas; RT-ENF-ROP-002: 1,110 piezas).
 
-## Uso diario
+## Arranque
 
-| Momento | Pestaña | Botón |
-| --- | --- | --- |
-| Vigilancia cuenta la ropa sucia en el Tanatorio y la entrega al proveedor | Envíos | + Nuevo envío → imprimir remisión (🖨) y firmar |
-| Llega ropa limpia: Vigilancia la cuenta contra la nota de lavandería | Recepciones | + Nueva recepción (según nota, aceptadas, rechazadas y motivo) |
-| Supervisión resurte un servicio | Paliativos | + Resurtir un servicio (contar gabinete → la app propone lo que falta) → 🖨 Vale |
-| Revisión del día | Tablero | Piezas con más de 3 días = reclamar al proveedor |
-| Fin de mes | Paliativos y Stock y conteos | Conteo físico de Paliativos (la app muestra la diferencia contra lo esperado) y de cada servicio |
-| Fin de mes | Saldo en lavandería | Imprimir para conciliación → registrar faltantes reconocidos con su acta |
-| Fin de mes | Concentrado | Imprimir / PDF de los seis indicadores |
+1. Con `ROPA1`, registre en **Inventario → + Alta** la compra inicial: una alta al almacén central (ropa de cama y de paciente) y otra a CEyE (ropa quirúrgica).
+2. Lleve la ropa a los servicios con **+ Resurtir servicio** (incluida la de las camas): así la app sabe que esas piezas están en los servicios.
+3. Haga un **conteo de anaquel** en Quirófano / CEyE con los bultos estériles que haya.
+4. Revise en **Configuración** la composición de los bultos cuando la Coordinación de Quirófano la valide.
 
-## Cómo se mueve la existencia de Paliativos
+## Actualizar el backend
 
-Existencia = último conteo físico de Paliativos + ropa limpia aceptada en recepciones posteriores − lo surtido a servicios después.
-Por eso cada movimiento lleva fecha **y hora**. Cada conteo físico reinicia el cálculo y muestra cuánto difiere de lo esperado.
-
-## Fotos de las notas del proveedor
-
-Vigilancia puede tomar con el celular o la tableta una foto de la nota del proveedor al entregar ropa sucia y al recibir limpia. La app la reduce (unos 150 KB) y la sube a una carpeta de Google Drive llamada **"Control de Ropa CMGA - Fotos de notas"**, en la cuenta de quien implementó el Apps Script. Cada envío o recepción queda con su 📷 para abrir la foto, y la foto sale en la remisión impresa.
-
-Para activarla, después de pegar el nuevo `Code.gs` ejecute **una vez** la función `autorizarDrive` y acepte el permiso de Google Drive. Luego publique una nueva versión de la implementación. Si no hay internet, la foto queda guardada en el equipo y se sube sola al reconectarse.
-
-## Si ya había instalado la versión anterior del backend
-
-Reemplace `Code.gs` (ahora incluye la hoja **Surtidos**), ejecute `inicializarHojas` una vez y publique una **nueva versión** de la implementación.
-
-## Notas técnicas
-
-- Los datos se guardan primero en el navegador y después se envían a Sheets. Si no hay internet, quedan en cola y se reenvían solos; el indicador del encabezado muestra cuántos cambios faltan.
-- En la hoja de cálculo, cada registro ocupa una fila con un resumen legible y la columna "datos (JSON)", que es la que lee la app. No edite esa columna a mano.
-- **Configuración → Descargar respaldo** genera un archivo JSON con todo.
-- localStorage: `ropa_cmga_v2` (datos) y `ropa_cmga_queue_v2` (cola de envío).
+Pegue `Code.gs` en el proyecto de Apps Script y vaya a Implementar → Administrar implementaciones → ✏️ → Versión: Nueva versión → Implementar. La URL no cambia.
